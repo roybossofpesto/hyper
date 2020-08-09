@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>My first three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { display: block; }
+			body { background-color: red }
+		</style>
+	</head>
+	<body>
+		<script src="js/three.js"></script>
+		<script src-"js/app.js"></script>
+		<script type="text/javascript">
+
+		function getRandomInt(max) {
+			return Math.floor(Math.random() * Math.floor(max));
+		}
+
+		console.log("app")
+
+		var scene = new THREE.Scene();
+		var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		renderer.getContext().lineWidth(100);
+
+		document.body.appendChild( renderer.domElement );
+
+		/*{
+			const geometry = new THREE.BoxGeometry();
+			const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+			const cube = new THREE.Mesh( geometry, material );
+			cube.scale.x *= .5;
+			cube.scale.y *= .5;
+			cube.scale.z *= .5;
+
+			//scene.add( cube );
+
+			const wireframe = new THREE.WireframeGeometry( geometry );
+			console.log("wireframe", wireframe);
+
+			const line = new THREE.LineSegments( wireframe, new THREE.LineBasicMaterial( {
+				color: 0xf00fff,
+				linewidth: 1,
+				linecap: 'round', //ignored by WebGLRenderer
+				linejoin:  'round' //ignored by WebGLRenderer
+			} ));
+			line.scale.x *= .55;
+			line.scale.y *= .55;
+			line.scale.z *= .55;
+			//line.material.depthTest = false;
+			//line.material.opacity = 0.25;
+			//line.material.transparent = true;
+			// line.material.color = 0xff0000;
+
+			// scene.add(line);
+		}*/
+
+		let objs = [];
+
+		{
+			const ss = .5;
+			const points = [];
+			points.push( new THREE.Vector3( 1, 1, 1 ) );
+			points.push( new THREE.Vector3( 1, 1, -1 ) );
+			points.push( new THREE.Vector3( 1, -1, -1 ) );
+			points.push( new THREE.Vector3( 1, -1, 1 ) );
+
+			points.push( new THREE.Vector3( ss, -ss, ss ) );
+			points.push( new THREE.Vector3( -ss, -ss, ss ) );
+			points.push( new THREE.Vector3( -ss, ss, ss ) );
+			points.push( new THREE.Vector3( -ss, ss, -ss ) );
+
+			points.push( new THREE.Vector3( -1, 1, -1 ) );
+			points.push( new THREE.Vector3( -1, 1, 1 ) );
+			points.push( new THREE.Vector3( -1, -1, 1 ) );
+			points.push( new THREE.Vector3( -1, -1, -1 ) );
+
+			points.push( new THREE.Vector3( -ss, -ss, -ss ) );
+			points.push( new THREE.Vector3( ss, -ss, -ss ) );
+			points.push( new THREE.Vector3( ss, ss, -ss ) );
+			points.push( new THREE.Vector3( ss, ss, ss ) );
+
+			points.push( new THREE.Vector3( 1, 1, 1 ) );
+
+
+
+			const geometry = new THREE.BufferGeometry().setFromPoints( points );
+
+			const material = new THREE.LineBasicMaterial({
+				color: 0xffffff
+			});
+			const north_south = new THREE.Line( geometry, material );
+			north_south.rotation.z = Math.PI/10;
+			north_south.rotation.x = Math.PI/10;
+			objs.push(north_south);
+
+
+			const make_object = (xx, color, scale = new THREE.Vector4(1, 1, 1, 1)) => {
+				var points_ = [];
+
+				for (let kk=0, kk_max=xx.length; kk<kk_max; kk+=2)
+				{
+					const ii = xx[kk];
+					const jj = xx[kk+1];
+					let pii = new THREE.Vector3(scale.x*points[ii].x, scale.y*points[ii].y, scale.z*points[ii].z);
+					let pjj = new THREE.Vector3(scale.x*points[jj].x, scale.y*points[jj].y, scale.z*points[jj].z);
+					const factor = 1/(1 - scale.w/2);
+					pii.multiplyScalar(factor)
+					pjj.multiplyScalar(factor)
+					// pii.x += delta;
+					// pjj += delta;
+					// console.log("*****", ii, jj, pii, pjj);
+					points_.push(pii);
+					points_.push(pjj);
+				}
+				var geometry_ = new THREE.BufferGeometry().setFromPoints( points_ );
+
+				var material_ = new THREE.LineBasicMaterial({
+					color: color,
+				});
+				var object_ = new THREE.LineSegments( geometry_, material_ );
+				object_.rotation.z = Math.PI/10;
+				object_.rotation.x = Math.PI/10;
+
+				return object_;
+			}
+
+
+			const edges_rot_x = [
+				0, 1, 1, 2, 2, 3, 3, 0,
+				8, 9, 9, 10, 10, 11, 11, 8,
+				4, 13, 13, 14, 14, 15, 15, 4,
+				5, 6, 6, 7, 7, 12, 12, 5,
+
+			];
+
+			const edges_rot_y = [
+				0, 1, 1, 8, 8, 9, 9, 0,
+				15, 14, 14, 7, 7, 6, 6, 15,
+				4, 13, 13, 12, 12, 5, 5, 4,
+				3, 2, 2, 11, 11, 10, 10, 3,
+			];
+
+			const edges_rot_z = [
+				0, 3, 3, 10, 10, 9, 9, 0,
+				4, 5, 5, 6, 6, 15, 15, 4,
+				12, 13, 13, 14, 14, 7, 7, 12,
+				11, 2, 2, 1, 1, 8, 8, 11,
+			];
+
+			const edges_rot_w = [
+				0, 15, 15, 4, 4, 3, 3, 0,
+				2, 13, 13, 14, 14, 1, 1, 2,
+				7, 8,  8, 11, 11, 12, 12, 7,
+				6, 9, 9, 10, 10, 5, 5, 6,
+			];
+
+			const bevel_width = .85;
+
+			objs.push(make_object(edges_rot_x, 0x00ffff, new THREE.Vector4(1, bevel_width, bevel_width, 0)));
+			objs.push(make_object(edges_rot_y, 0xff00ff, new THREE.Vector4(bevel_width, 1, bevel_width, 0)));
+			objs.push(make_object(edges_rot_z, 0xffff00, new THREE.Vector4(bevel_width, bevel_width, 1, 0)));
+			objs.push(make_object(edges_rot_w, 0x00ff00, new THREE.Vector4(1, bevel_width, 1, -.1)));
+
+			for (let obj of objs)
+				scene.add(obj);
+
+		}
+
+		// var line=new THREE.three3DExtras.tubeLine([-1,-1,0],[1,1,0],0.02,'#FFF');
+
+
+		camera.position.z = 4;
+
+		let selection = 0;
+		let moving = true;
+		let display_all = true;
+
+		document.addEventListener("keydown", onDocumentKeyDown, false);
+		function onDocumentKeyDown(event) {
+			console.log('kdsmfkmdkfm', event.which);
+		    var keyCode = event.which;
+		    // up
+		    if (keyCode == 38) {
+				selection = (selection + 1) % 5;
+		        // down
+		    } else if (keyCode == 40) {
+				selection = (selection + 4) % 5;
+		        // l
+		    } else if (keyCode == 76) {
+				display_all = !display_all;
+		        // right
+		    } else if (keyCode == 68) {
+		        // space
+		    } else if (keyCode == 32) {
+				moving = !moving;
+
+		    }
+		    //animate();
+		};
+
+		console.log(objs[0]);
+		function animate() {
+			objs[0].visible = display_all;
+			const dt = moving ? 1e-2 : 0;
+			// line.rotation.y += dt;
+
+			let kk = 0;
+			selection = getRandomInt(objs.length);
+			for (let obj of objs)
+			{
+				obj.visible = (selection == kk++) || display_all;
+				obj.rotation.y += dt;
+			}
+			requestAnimationFrame( animate );
+			renderer.render( scene, camera );
+		}
+		animate();
+
+		console.log("banco")
+
+
+		</script>
+	</body>
+</html>
