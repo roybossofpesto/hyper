@@ -6,12 +6,16 @@
 		<style>
 			body { margin: 0; }
 			canvas { display: block; }
-			body { background-color: red }
+			body { background-color: red; font-family: sans-serif; font-weight: bold; }
+			#current_position { color: white; z-index: 10; position: absolute; }
 		</style>
 	</head>
 	<body>
 		<script src="js/three.js"></script>
 		<script src-"js/app.js"></script>
+
+		<div id="current_position">current_position</div>
+
 		<script type="text/javascript">
 
 		function getRandomInt(max) {
@@ -60,10 +64,14 @@
 		}*/
 
 		let objs = [];
+		let root = new THREE.Mesh();
+		root.rotation.z = Math.PI/10;
+		root.rotation.x = Math.PI/10;
+		scene.add(root);
 
+		let points = [];
 		{
 			const ss = .5;
-			const points = [];
 			points.push( new THREE.Vector3( 1, 1, 1 ) );
 			points.push( new THREE.Vector3( 1, 1, -1 ) );
 			points.push( new THREE.Vector3( 1, -1, -1 ) );
@@ -85,27 +93,29 @@
 			points.push( new THREE.Vector3( ss, ss, ss ) );
 
 			points.push( new THREE.Vector3( 1, 1, 1 ) );
+		}
 
 
-
+		{ // north south hamiltonian
 			const geometry = new THREE.BufferGeometry().setFromPoints( points );
 
 			const material = new THREE.LineBasicMaterial({
 				color: 0xffffff
 			});
 			const north_south = new THREE.Line( geometry, material );
-			north_south.rotation.z = Math.PI/10;
-			north_south.rotation.x = Math.PI/10;
+
 			objs.push(north_south);
+		}
 
 
-			const make_object = (xx, color, scale = new THREE.Vector4(1, 1, 1, 1)) => {
+		{
+			const make_scaled_segments = (indices, color, scale = new THREE.Vector4(1, 1, 1, 1)) => {
 				var points_ = [];
 
-				for (let kk=0, kk_max=xx.length; kk<kk_max; kk+=2)
+				for (let kk=0, kk_max=indices.length; kk<kk_max; kk+=2)
 				{
-					const ii = xx[kk];
-					const jj = xx[kk+1];
+					const ii = indices[kk];
+					const jj = indices[kk+1];
 					let pii = new THREE.Vector3(scale.x*points[ii].x, scale.y*points[ii].y, scale.z*points[ii].z);
 					let pjj = new THREE.Vector3(scale.x*points[jj].x, scale.y*points[jj].y, scale.z*points[jj].z);
 					const factor = 1/(1 - scale.w/2);
@@ -123,8 +133,6 @@
 					color: color,
 				});
 				var object_ = new THREE.LineSegments( geometry_, material_ );
-				object_.rotation.z = Math.PI/10;
-				object_.rotation.x = Math.PI/10;
 
 				return object_;
 			}
@@ -159,63 +167,118 @@
 				6, 9, 9, 10, 10, 5, 5, 6,
 			];
 
-			const bevel_width = .85;
+			const bevel_width = .95;
 
-			objs.push(make_object(edges_rot_x, 0x00ffff, new THREE.Vector4(1, bevel_width, bevel_width, 0)));
-			objs.push(make_object(edges_rot_y, 0xff00ff, new THREE.Vector4(bevel_width, 1, bevel_width, 0)));
-			objs.push(make_object(edges_rot_z, 0xffff00, new THREE.Vector4(bevel_width, bevel_width, 1, 0)));
-			objs.push(make_object(edges_rot_w, 0x00ff00, new THREE.Vector4(1, bevel_width, 1, -.1)));
+			objs.push(make_scaled_segments(edges_rot_x, 0x00ffff, new THREE.Vector4(1, bevel_width, bevel_width, 0)));
+			objs.push(make_scaled_segments(edges_rot_y, 0xff00ff, new THREE.Vector4(bevel_width, 1, bevel_width, 0)));
+			objs.push(make_scaled_segments(edges_rot_z, 0xffff00, new THREE.Vector4(bevel_width, bevel_width, 1, 0)));
+			objs.push(make_scaled_segments(edges_rot_w, 0x00ff00, new THREE.Vector4(1, bevel_width, 1, -.1)));
 
 			for (let obj of objs)
-				scene.add(obj);
+				root.add(obj);
 
 		}
 
+		{
+			const geometry = new THREE.IcosahedronGeometry(.2, 2);
+			const material = new THREE.MeshPhongMaterial({ color: 0xaaaaaa });
+			var marker = new THREE.Mesh(geometry, material);
+
+			root.add(marker);
+		}
 		// var line=new THREE.three3DExtras.tubeLine([-1,-1,0],[1,1,0],0.02,'#FFF');
 
 
+		{
+			const pointLight = new THREE.PointLight( 0xffffff, 1, 100 );
+			pointLight.position.set( 10, 10, 10 );
+			scene.add( pointLight );
+		}
+
 		camera.position.z = 4;
 
-		let selection = 0;
+		let current_vertex = 0;
 		let moving = true;
 		let display_all = true;
 
+		let update_current_position = () => {
+			const label = document.getElementById("current_position");
+			label.textContent = `p${current_vertex+1}`;
+			// console.log("label", label);
+		};
+
+		update_current_position();
+
+		let go_east = () => {
+			const next = [
+				3, 8, 13, 10,
+				15, 12, 9, 14,
+				11, 0, 5, 2,
+				7, 4, 1, 6,
+			];
+			// console.log("before", current_vertex)
+			current_vertex = next[current_vertex];
+			// console.log("after", current_vertex)
+			update_current_position();
+		};
+
+		let go_west = () => {
+			const next = [
+				9, 14, 11, 0,
+				13, 10, 15, 12,
+				1, 6, 3, 8,
+				5, 2, 7, 4,
+			];
+			// console.log("before", current_vertex)
+			current_vertex = next[current_vertex];
+			// console.log("after", current_vertex)
+			update_current_position();
+		};
+
 		document.addEventListener("keydown", onDocumentKeyDown, false);
 		function onDocumentKeyDown(event) {
-			console.log('kdsmfkmdkfm', event.which);
-		    var keyCode = event.which;
-		    // up
-		    if (keyCode == 38) {
-				selection = (selection + 1) % 5;
-		        // down
-		    } else if (keyCode == 40) {
-				selection = (selection + 4) % 5;
-		        // l
-		    } else if (keyCode == 76) {
+			console.log('event.which', event.which);
+		    const keyCode = event.which;
+		    if (keyCode == 38) { // up
+				current_vertex ++;
+				current_vertex %= 16;
+				update_current_position();
+		    } else if (keyCode == 40) { // down
+				current_vertex += 15;
+				current_vertex %= 16;
+				update_current_position();
+		    } else if (keyCode == 76) { // ll
 				display_all = !display_all;
-		        // right
-		    } else if (keyCode == 68) {
-		        // space
-		    } else if (keyCode == 32) {
+			} else if (keyCode == 39) { // right
+				go_east();
+			} else if (keyCode == 37) { // left
+ 			 	go_west();
+		    } else if (keyCode == 32) { // space
+				current_vertex = 0;
 				moving = !moving;
-
+				update_current_position();
 		    }
 		    //animate();
 		};
 
-		console.log(objs[0]);
 		function animate() {
 			objs[0].visible = display_all;
 			const dt = moving ? 1e-2 : 0;
 			// line.rotation.y += dt;
 
+			root.rotation.y += dt;
+
+			const current_point = points[current_vertex];
+			// console.log(current_vertex, current_point);
+			marker.position.x = current_point.x;
+			marker.position.y = current_point.y;
+			marker.position.z = current_point.z;
+
 			let kk = 0;
-			selection = getRandomInt(objs.length);
+			const selection = getRandomInt(objs.length);
 			for (let obj of objs)
-			{
 				obj.visible = (selection == kk++) || display_all;
-				obj.rotation.y += dt;
-			}
+
 			requestAnimationFrame( animate );
 			renderer.render( scene, camera );
 		}
@@ -223,7 +286,7 @@
 
 		console.log("banco")
 
-
 		</script>
+
 	</body>
 </html>
