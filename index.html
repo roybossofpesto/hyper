@@ -6,7 +6,7 @@
 		<style>
 			body { margin: 0; }
 			canvas { display: block; }
-			body { background-color: red; font-family: sans-serif; font-weight: bold; }
+			body { background-color: red; font-family: monospace; font-weight: bold; }
 			#current_position { color: white; z-index: 10; position: absolute; }
 		</style>
 	</head>
@@ -17,6 +17,13 @@
 		<div id="current_position">current_position</div>
 
 		<script type="text/javascript">
+
+		String.prototype.lpad = function(padString, length) {
+			var str = this;
+			while (str.length < length)
+				str = padString + str;
+			return str;
+		}
 
 		function getRandomInt(max) {
 			return Math.floor(Math.random() * Math.floor(max));
@@ -69,9 +76,10 @@
 		root.rotation.x = Math.PI/10;
 		scene.add(root);
 
+		const ss = .5;
+
 		let points = [];
 		{
-			const ss = .5;
 			points.push( new THREE.Vector3( 1, 1, 1 ) );
 			points.push( new THREE.Vector3( 1, 1, -1 ) );
 			points.push( new THREE.Vector3( 1, -1, -1 ) );
@@ -95,6 +103,44 @@
 			points.push( new THREE.Vector3( 1, 1, 1 ) );
 		}
 
+		{
+			const geometry_x = new THREE.BoxGeometry(1.5, .2, .2);
+			const geometry_y = new THREE.BoxGeometry(.2, 1.5, .2);
+			const geometry_z = new THREE.BoxGeometry(.2, .2, 1.5);
+			const geometry_w = new THREE.BoxGeometry(.2, .4, .2);
+			// const geometry_w = new THREE.BoxGeometry(1.8, .1, .1);
+
+			const material = new THREE.MeshPhongMaterial({
+				color: 0xff0000,
+			});
+
+			let tubes = [];
+			const make_tube = (geometry, position, scale = 1, is_crooked = false) => {
+				const tube = new THREE.Mesh(geometry, material);
+				tube.position.x = position.x * scale;
+				tube.position.y = position.y * scale;
+				tube.position.z = position.z * scale;
+				const quaternion = new THREE.Quaternion();
+				if (is_crooked)
+				{
+
+					const foo = 1 / Math.sqrt(3);
+					quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(foo, -foo, foo));
+				}
+				// quaternion.multiplyScalar(scale);
+				tube.quaternion.copy(quaternion)
+				// tube.scale.multiplyScalar(scale);
+				root.add(tube);
+				tubes.push(tube);
+			};
+
+			make_tube(geometry_z, new THREE.Vector3(1, 1, 0));
+			make_tube(geometry_y, new THREE.Vector3(1, 0, -1));
+			make_tube(geometry_z, new THREE.Vector3(1, -1, 0));
+			make_tube(geometry_z, new THREE.Vector3(1, -1, 0), ss);
+			make_tube(geometry_w, new THREE.Vector3((1+ss)/2, -(1+ss/2)/2, (1+ss)/2), 1, true);
+
+		}
 
 		{ // north south hamiltonian
 			const geometry = new THREE.BufferGeometry().setFromPoints( points );
@@ -187,7 +233,7 @@
 			root.add(marker_tip);
 
 			var markers_trail = [];
-			for (let kk=0; kk<4; kk++)
+			for (let kk=0; kk<7; kk++)
 			{
 				const marker = new THREE.Mesh(geometry, material_trail);
 				marker.scale.multiplyScalar(.5);
@@ -195,8 +241,6 @@
 				markers_trail.push(marker);
 				root.add(marker);
 			}
-
-
 		}
 		// var line=new THREE.three3DExtras.tubeLine([-1,-1,0],[1,1,0],0.02,'#FFF');
 
@@ -216,7 +260,12 @@
 
 		let update_current_position = () => {
 			const label = document.getElementById("current_position");
-			label.textContent = `p${current_vertex+1}  ${vertices}`;
+			label.textContent = "";
+			label.textContent += `p${(current_vertex+1).toString().lpad("0", 2)} ... `;
+
+			for (let kk=vertices.length-1; kk>=0; kk--)
+				label.textContent += `p${(vertices[kk]+1).toString().lpad("0", 2)} `;
+
 			// console.log("label", label);
 
 
@@ -233,7 +282,7 @@
 			}
 
 			vertices.push(current_vertex);
-			while (vertices.length > 4)
+			while (vertices.length > 7)
 				vertices.shift();
 			console.log(vertices);
 		};
@@ -290,7 +339,7 @@
 		    } else if (keyCode == 32) { // space
 				moving = !moving;
 		    }
-		    //animate();
+		    // animate();
 		};
 
 		function animate() {
