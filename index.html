@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>My first three.js app</title>
+		<title>hypercube</title>
 		<style>
 			body { margin: 0; }
 			canvas { display: block; }
@@ -134,11 +134,11 @@
 				tubes.push(tube);
 			};
 
-			make_tube(geometry_z, new THREE.Vector3(1, 1, 0));
-			make_tube(geometry_y, new THREE.Vector3(1, 0, -1));
-			make_tube(geometry_z, new THREE.Vector3(1, -1, 0));
-			make_tube(geometry_z, new THREE.Vector3(1, -1, 0), ss);
-			make_tube(geometry_w, new THREE.Vector3((1+ss)/2, -(1+ss/2)/2, (1+ss)/2), 1, true);
+			// make_tube(geometry_z, new THREE.Vector3(1, 1, 0));
+			// make_tube(geometry_y, new THREE.Vector3(1, 0, -1));
+			// make_tube(geometry_z, new THREE.Vector3(1, -1, 0));
+			// make_tube(geometry_z, new THREE.Vector3(1, -1, 0), ss);
+			// make_tube(geometry_w, new THREE.Vector3((1+ss)/2, -(1+ss/2)/2, (1+ss)/2), 1, true);
 
 		}
 
@@ -226,7 +226,7 @@
 		}
 
 		{
-			const geometry = new THREE.IcosahedronGeometry(.2, 1);
+			const geometry = new THREE.IcosahedronGeometry(.2, 3);
 			const material_tip = new THREE.MeshPhongMaterial({ color: 0xaaaaaa });
 			const material_trail = new THREE.MeshPhongMaterial({ color: 0xffff00 });
 			var marker_tip = new THREE.Mesh(geometry, material_tip);
@@ -248,6 +248,19 @@
 		{
 			const pointLight = new THREE.PointLight( 0xffffff, 1, 100 );
 			pointLight.position.set( 10, 10, 10 );
+			scene.add( pointLight );
+		}
+
+
+		{
+			const pointLight = new THREE.PointLight( 0xaaaaaa, 1, 100 );
+			pointLight.position.set( 0, -20, 0 );
+			scene.add( pointLight );
+		}
+
+		{
+			const pointLight = new THREE.PointLight( 0xaaaaaa, 1, 100 );
+			pointLight.position.set( -20, 0, 0 );
 			scene.add( pointLight );
 		}
 
