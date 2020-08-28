@@ -84,41 +84,37 @@ let points = [];
 }
 
 {
-    const geometry_x = new THREE.BoxGeometry(1.5, .2, .2);
-    const geometry_y = new THREE.BoxGeometry(.2, 1.5, .2);
-    const geometry_z = new THREE.BoxGeometry(.2, .2, 1.5);
-    const geometry_w = new THREE.BoxGeometry(.2, .4, .2);
+    const geometry_x = new THREE.BoxBufferGeometry(2, .2, .2);
+    const geometry_y = new THREE.BoxBufferGeometry(.2, 2, .2);
+    const geometry_z = new THREE.BoxBufferGeometry(.2, .2, 2);
+    // const geometry_w = new THREE.BoxGeometry(.2, .4, .2);
     // const geometry_w = new THREE.BoxGeometry(1.8, .1, .1);
 
     const material = new THREE.MeshPhongMaterial({
-        color: 0xff0000,
+        color: 0xaa0000,
     });
 
-    let tubes = [];
-    const make_tube = (geometry, position, scale = 1, is_crooked = false) => {
-        const tube = new THREE.Mesh(geometry, material);
-        tube.position.x = position.x * scale;
-        tube.position.y = position.y * scale;
-        tube.position.z = position.z * scale;
-        const quaternion = new THREE.Quaternion();
-        if (is_crooked) {
+    let tubes = new THREE.InstancedMesh(geometry_x, material, 2);
+    root.add(tubes);
 
-            const foo = 1 / Math.sqrt(3);
-            quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(foo, -foo, foo));
-        }
-        // quaternion.multiplyScalar(scale);
-        tube.quaternion.copy(quaternion)
-        // tube.scale.multiplyScalar(scale);
-        root.add(tube);
-        tubes.push(tube);
-    };
+    const transform = new THREE.Matrix4();
+    transform.set(
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 2);
 
+    tubes.setMatrixAt(0, transform);
+    // tubes.setMatrixAt(1, transform);
+    // console.log(transform);
+
+
+    // make_tube(geometry_x, new THREE.Vector3(0, 0, 0));
     // make_tube(geometry_z, new THREE.Vector3(1, 1, 0));
     // make_tube(geometry_y, new THREE.Vector3(1, 0, -1));
     // make_tube(geometry_z, new THREE.Vector3(1, -1, 0));
     // make_tube(geometry_z, new THREE.Vector3(1, -1, 0), ss);
     // make_tube(geometry_w, new THREE.Vector3((1+ss)/2, -(1+ss/2)/2, (1+ss)/2), 1, true);
-
 }
 
 { // north south hamiltonian
@@ -201,24 +197,22 @@ let points = [];
 }
 
 {
-    const geometry = new THREE.IcosahedronGeometry(.2, 3);
-    const material_tip = new THREE.MeshPhongMaterial({
+    const geometry = new THREE.IcosahedronBufferGeometry(.2, 2);
+    const material = new THREE.MeshPhongMaterial({
         color: 0xaaaaaa
     });
-    const material_trail = new THREE.MeshPhongMaterial({
+    var marker_tip = new THREE.Mesh(geometry, material);
+    root.add(marker_tip);
+}
+
+{
+    const geometry = new THREE.IcosahedronBufferGeometry(.1, 2);
+    const material = new THREE.MeshPhongMaterial({
         color: 0xffff00
     });
-    var marker_tip = new THREE.Mesh(geometry, material_tip);
-    root.add(marker_tip);
 
-    var markers_trail = [];
-    for (let kk = 0; kk < 7; kk++) {
-        const marker = new THREE.Mesh(geometry, material_trail);
-        marker.scale.multiplyScalar(.5);
-
-        markers_trail.push(marker);
-        root.add(marker);
-    }
+    var markers_trail = new THREE.InstancedMesh(geometry, material, 7);
+    root.add(markers_trail);
 }
 // var line=new THREE.three3DExtras.tubeLine([-1,-1,0],[1,1,0],0.02,'#FFF');
 
@@ -227,7 +221,6 @@ let points = [];
     pointLight.position.set(10, 10, 10);
     scene.add(pointLight);
 }
-
 
 {
     const pointLight = new THREE.PointLight(0xaaaaaa, 1, 100);
@@ -248,7 +241,7 @@ let vertices = [];
 let is_animated = false;
 let display_all = true;
 
-let update_current_position = () => {
+const update_current_position = () => {
     const label = document.getElementById("current_position");
     label.textContent = "";
     label.textContent += `p${(current_vertex+1).toString().lpad("0", 2)} ... `;
@@ -256,29 +249,22 @@ let update_current_position = () => {
     for (let kk = vertices.length - 1; kk >= 0; kk--)
         label.textContent += `p${(vertices[kk]+1).toString().lpad("0", 2)} `;
 
-    for (let kk = 0; kk < markers_trail.length; kk++) {
+    for (let kk = 0; kk < markers_trail.count; kk++) {
         if (kk >= vertices.length)
             break;
-        const marker = markers_trail[kk];
         const point = points[vertices[kk]];
-        // console.log(marker, point);
-        marker.position.x = point.x;
-        marker.position.y = point.y;
-        marker.position.z = point.z;
-        marker.visible = true;
+        const transform = new THREE.Matrix4();
+        transform.setPosition(point);
+        markers_trail.setMatrixAt(kk, transform);
     }
-
-    for (let kk = vertices.length; kk < markers_trail.length; kk++)
-        markers_trail[kk].visible = false;
+    markers_trail.instanceMatrix.needsUpdate = true;
 
     vertices.push(current_vertex);
     while (vertices.length > 7)
         vertices.shift();
     // console.log(vertices);
 };
-
 update_current_position();
-
 let go_east = () => {
     const next = [
         3, 8, 13, 10,
@@ -291,7 +277,6 @@ let go_east = () => {
     // console.log("after", current_vertex)
     update_current_position();
 };
-
 let go_west = () => {
     const next = [
         9, 14, 11, 0,
@@ -366,8 +351,6 @@ renderer.domElement.onmouseup = (event) => {
 
 let top_last = Date.now();
 const animate = () => {
-    objs[0].visible = display_all;
-
     var top_current = Date.now();
     var dt = 1e-3 * (top_current - top_last);
     top_last = top_current;
