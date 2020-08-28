@@ -8,6 +8,7 @@
             canvas { display: block; }
             body { background-color: red; font-family: monospace; font-weight: bold; }
             #current_position { color: white; z-index: 10; position: absolute; }
+            #target_angle { color: white; z-index: 10; position: absolute; top: 1rem; }
         </style>
     </head>
     <body>
@@ -15,6 +16,7 @@
         <script src-"js/app.js"></script>
 
         <div id="current_position">current_position</div>
+        <div id="target_angle">target_angle</div>
 
         <script type="text/javascript">
 
@@ -358,15 +360,22 @@
         let xx_prev = 0;
         let yy_prev = 0;
         let target_angle = 0;
+        const update_target_angle = () => {
+            const label = document.getElementById("target_angle");
+            label.textContent = `${Math.round(180*target_angle/Math.PI)}°`;
+        };
+        update_target_angle();
+
         const onMouseMove = (event) => {
             if (event.buttons != 1)
                 return;
-            const xx_delta = -3.5e-3 * (xx_prev - event.clientX);
-            const yy_delta = 3.5e-3 * (yy_prev - event.clientY);
+            const xx_delta = -3.5e-3 * Math.max(Math.min(xx_prev - event.clientX, 200), -200);
+            const yy_delta = 3.5e-3 * Math.max(Math.min(yy_prev - event.clientY, 200), -200);
+            // console.log('mouse', xx_prev - event.clientX)
             xx_prev = event.clientX;
             yy_prev = event.clientY;
-            // console.log("mouse", xx_delta, yy_delta, target_angle, root.rotation.y);
             target_angle += xx_delta;
+            update_target_angle();
         };
         const onMouseDown = (event) => {
             if (event.buttons != 1)
@@ -384,17 +393,24 @@
         renderer.domElement.addEventListener("mousedown", onMouseDown, false);
         renderer.domElement.addEventListener("mouseup", onMouseUp, false);
 
-        function animate() {
+
+        let top_last = Date.now();
+        const animate = () => {
             objs[0].visible = display_all;
-            const dt = 1e-2;
-            // line.rotation.y += dt;
+
+            var top_current = Date.now();
+            var dt = 1e-3 * (top_current - top_last);
+            top_last = top_current;
 
             if (is_animated)
+            {
                 target_angle += dt;
+                update_target_angle();
+            }
 
             const angle_delta = target_angle - root.rotation.y;
             // console.log("angle_delta", angle_delta * dt, target_angle, root.rotation.y);
-            root.rotation.y += 10 * angle_delta * dt;
+            root.rotation.y += 7.5 * angle_delta * dt;
 
             const current_point = points[current_vertex];
             // console.log(current_vertex, current_point);
@@ -409,7 +425,7 @@
 
             requestAnimationFrame( animate );
             renderer.render( scene, camera );
-        }
+        };
         animate();
 
         console.log("banco")
