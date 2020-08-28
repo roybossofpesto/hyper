@@ -1,386 +1,420 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title>hypercube</title>
-		<style>
-			body { margin: 0; }
-			canvas { display: block; }
-			body { background-color: red; font-family: monospace; font-weight: bold; }
-			#current_position { color: white; z-index: 10; position: absolute; }
-		</style>
-	</head>
-	<body>
-		<script src="js/three.js"></script>
-		<script src-"js/app.js"></script>
-
-		<div id="current_position">current_position</div>
-
-		<script type="text/javascript">
-
-		String.prototype.lpad = function(padString, length) {
-			var str = this;
-			while (str.length < length)
-				str = padString + str;
-			return str;
-		}
-
-		function getRandomInt(max) {
-			return Math.floor(Math.random() * Math.floor(max));
-		}
-
-		console.log("app")
-
-		var scene = new THREE.Scene();
-		var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-
-		var renderer = new THREE.WebGLRenderer();
-		renderer.setSize( window.innerWidth, window.innerHeight );
-		renderer.getContext().lineWidth(100);
-
-		document.body.appendChild( renderer.domElement );
-
-		/*{
-			const geometry = new THREE.BoxGeometry();
-			const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
-			const cube = new THREE.Mesh( geometry, material );
-			cube.scale.x *= .5;
-			cube.scale.y *= .5;
-			cube.scale.z *= .5;
-
-			//scene.add( cube );
-
-			const wireframe = new THREE.WireframeGeometry( geometry );
-			console.log("wireframe", wireframe);
-
-			const line = new THREE.LineSegments( wireframe, new THREE.LineBasicMaterial( {
-				color: 0xf00fff,
-				linewidth: 1,
-				linecap: 'round', //ignored by WebGLRenderer
-				linejoin:  'round' //ignored by WebGLRenderer
-			} ));
-			line.scale.x *= .55;
-			line.scale.y *= .55;
-			line.scale.z *= .55;
-			//line.material.depthTest = false;
-			//line.material.opacity = 0.25;
-			//line.material.transparent = true;
-			// line.material.color = 0xff0000;
-
-			// scene.add(line);
-		}*/
-
-		let objs = [];
-		let root = new THREE.Mesh();
-		root.rotation.z = Math.PI/10;
-		root.rotation.x = Math.PI/10;
-		scene.add(root);
-
-		const ss = .5;
-
-		let points = [];
-		{
-			points.push( new THREE.Vector3( 1, 1, 1 ) );
-			points.push( new THREE.Vector3( 1, 1, -1 ) );
-			points.push( new THREE.Vector3( 1, -1, -1 ) );
-			points.push( new THREE.Vector3( 1, -1, 1 ) );
-
-			points.push( new THREE.Vector3( ss, -ss, ss ) );
-			points.push( new THREE.Vector3( -ss, -ss, ss ) );
-			points.push( new THREE.Vector3( -ss, ss, ss ) );
-			points.push( new THREE.Vector3( -ss, ss, -ss ) );
-
-			points.push( new THREE.Vector3( -1, 1, -1 ) );
-			points.push( new THREE.Vector3( -1, 1, 1 ) );
-			points.push( new THREE.Vector3( -1, -1, 1 ) );
-			points.push( new THREE.Vector3( -1, -1, -1 ) );
-
-			points.push( new THREE.Vector3( -ss, -ss, -ss ) );
-			points.push( new THREE.Vector3( ss, -ss, -ss ) );
-			points.push( new THREE.Vector3( ss, ss, -ss ) );
-			points.push( new THREE.Vector3( ss, ss, ss ) );
-
-			points.push( new THREE.Vector3( 1, 1, 1 ) );
-		}
-
-		{
-			const geometry_x = new THREE.BoxGeometry(1.5, .2, .2);
-			const geometry_y = new THREE.BoxGeometry(.2, 1.5, .2);
-			const geometry_z = new THREE.BoxGeometry(.2, .2, 1.5);
-			const geometry_w = new THREE.BoxGeometry(.2, .4, .2);
-			// const geometry_w = new THREE.BoxGeometry(1.8, .1, .1);
-
-			const material = new THREE.MeshPhongMaterial({
-				color: 0xff0000,
-			});
-
-			let tubes = [];
-			const make_tube = (geometry, position, scale = 1, is_crooked = false) => {
-				const tube = new THREE.Mesh(geometry, material);
-				tube.position.x = position.x * scale;
-				tube.position.y = position.y * scale;
-				tube.position.z = position.z * scale;
-				const quaternion = new THREE.Quaternion();
-				if (is_crooked)
-				{
-
-					const foo = 1 / Math.sqrt(3);
-					quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(foo, -foo, foo));
-				}
-				// quaternion.multiplyScalar(scale);
-				tube.quaternion.copy(quaternion)
-				// tube.scale.multiplyScalar(scale);
-				root.add(tube);
-				tubes.push(tube);
-			};
-
-			// make_tube(geometry_z, new THREE.Vector3(1, 1, 0));
-			// make_tube(geometry_y, new THREE.Vector3(1, 0, -1));
-			// make_tube(geometry_z, new THREE.Vector3(1, -1, 0));
-			// make_tube(geometry_z, new THREE.Vector3(1, -1, 0), ss);
-			// make_tube(geometry_w, new THREE.Vector3((1+ss)/2, -(1+ss/2)/2, (1+ss)/2), 1, true);
-
-		}
-
-		{ // north south hamiltonian
-			const geometry = new THREE.BufferGeometry().setFromPoints( points );
-
-			const material = new THREE.LineBasicMaterial({
-				color: 0xffffff
-			});
-			const north_south = new THREE.Line( geometry, material );
-
-			objs.push(north_south);
-		}
-
-
-		{
-			const make_scaled_segments = (indices, color, scale = new THREE.Vector4(1, 1, 1, 1)) => {
-				var points_ = [];
-
-				for (let kk=0, kk_max=indices.length; kk<kk_max; kk+=2)
-				{
-					const ii = indices[kk];
-					const jj = indices[kk+1];
-					let pii = new THREE.Vector3(scale.x*points[ii].x, scale.y*points[ii].y, scale.z*points[ii].z);
-					let pjj = new THREE.Vector3(scale.x*points[jj].x, scale.y*points[jj].y, scale.z*points[jj].z);
-					const factor = 1/(1 - scale.w/2);
-					pii.multiplyScalar(factor)
-					pjj.multiplyScalar(factor)
-					// pii.x += delta;
-					// pjj += delta;
-					// console.log("*****", ii, jj, pii, pjj);
-					points_.push(pii);
-					points_.push(pjj);
-				}
-				var geometry_ = new THREE.BufferGeometry().setFromPoints( points_ );
-
-				var material_ = new THREE.LineBasicMaterial({
-					color: color,
-				});
-				var object_ = new THREE.LineSegments( geometry_, material_ );
-
-				return object_;
-			}
-
-
-			const edges_rot_x = [
-				0, 1, 1, 2, 2, 3, 3, 0,
-				8, 9, 9, 10, 10, 11, 11, 8,
-				4, 13, 13, 14, 14, 15, 15, 4,
-				5, 6, 6, 7, 7, 12, 12, 5,
-
-			];
-
-			const edges_rot_y = [
-				0, 1, 1, 8, 8, 9, 9, 0,
-				15, 14, 14, 7, 7, 6, 6, 15,
-				4, 13, 13, 12, 12, 5, 5, 4,
-				3, 2, 2, 11, 11, 10, 10, 3,
-			];
-
-			const edges_rot_z = [
-				0, 3, 3, 10, 10, 9, 9, 0,
-				4, 5, 5, 6, 6, 15, 15, 4,
-				12, 13, 13, 14, 14, 7, 7, 12,
-				11, 2, 2, 1, 1, 8, 8, 11,
-			];
-
-			const edges_rot_w = [
-				0, 15, 15, 4, 4, 3, 3, 0,
-				2, 13, 13, 14, 14, 1, 1, 2,
-				7, 8,  8, 11, 11, 12, 12, 7,
-				6, 9, 9, 10, 10, 5, 5, 6,
-			];
-
-			const bevel_width = .95;
-
-			objs.push(make_scaled_segments(edges_rot_x, 0x00ffff, new THREE.Vector4(1, bevel_width, bevel_width, 0)));
-			objs.push(make_scaled_segments(edges_rot_y, 0xff00ff, new THREE.Vector4(bevel_width, 1, bevel_width, 0)));
-			objs.push(make_scaled_segments(edges_rot_z, 0xffff00, new THREE.Vector4(bevel_width, bevel_width, 1, 0)));
-			objs.push(make_scaled_segments(edges_rot_w, 0x00ff00, new THREE.Vector4(1, bevel_width, 1, -.1)));
-
-			for (let obj of objs)
-				root.add(obj);
-
-		}
-
-		{
-			const geometry = new THREE.IcosahedronGeometry(.2, 3);
-			const material_tip = new THREE.MeshPhongMaterial({ color: 0xaaaaaa });
-			const material_trail = new THREE.MeshPhongMaterial({ color: 0xffff00 });
-			var marker_tip = new THREE.Mesh(geometry, material_tip);
-			root.add(marker_tip);
-
-			var markers_trail = [];
-			for (let kk=0; kk<7; kk++)
-			{
-				const marker = new THREE.Mesh(geometry, material_trail);
-				marker.scale.multiplyScalar(.5);
-
-				markers_trail.push(marker);
-				root.add(marker);
-			}
-		}
-		// var line=new THREE.three3DExtras.tubeLine([-1,-1,0],[1,1,0],0.02,'#FFF');
-
-
-		{
-			const pointLight = new THREE.PointLight( 0xffffff, 1, 100 );
-			pointLight.position.set( 10, 10, 10 );
-			scene.add( pointLight );
-		}
-
-
-		{
-			const pointLight = new THREE.PointLight( 0xaaaaaa, 1, 100 );
-			pointLight.position.set( 0, -20, 0 );
-			scene.add( pointLight );
-		}
-
-		{
-			const pointLight = new THREE.PointLight( 0xaaaaaa, 1, 100 );
-			pointLight.position.set( -20, 0, 0 );
-			scene.add( pointLight );
-		}
-
-		camera.position.z = 4;
-
-		let current_vertex = 0;
-		let vertices = [];
-		let moving = true;
-		let display_all = true;
-
-		let update_current_position = () => {
-			const label = document.getElementById("current_position");
-			label.textContent = "";
-			label.textContent += `p${(current_vertex+1).toString().lpad("0", 2)} ... `;
-
-			for (let kk=vertices.length-1; kk>=0; kk--)
-				label.textContent += `p${(vertices[kk]+1).toString().lpad("0", 2)} `;
-
-			// console.log("label", label);
-
-
-			for (let kk=0; kk<markers_trail.length; kk++)
-			{
-				if (kk >= vertices.length)
-					break;
-				const marker = markers_trail[kk];
-				const point = points[vertices[kk]];
-				// console.log(marker, point);
-				marker.position.x = point.x;
-				marker.position.y = point.y;
-				marker.position.z = point.z;
-			}
-
-			vertices.push(current_vertex);
-			while (vertices.length > 7)
-				vertices.shift();
-			console.log(vertices);
-		};
-
-		update_current_position();
-
-		let go_east = () => {
-			const next = [
-				3, 8, 13, 10,
-				15, 12, 9, 14,
-				11, 0, 5, 2,
-				7, 4, 1, 6,
-			];
-			// console.log("before", current_vertex)
-			current_vertex = next[current_vertex];
-			// console.log("after", current_vertex)
-			update_current_position();
-		};
-
-		let go_west = () => {
-			const next = [
-				9, 14, 11, 0,
-				13, 10, 15, 12,
-				1, 6, 3, 8,
-				5, 2, 7, 4,
-			];
-			// console.log("before", current_vertex)
-			current_vertex = next[current_vertex];
-			// console.log("after", current_vertex)
-			update_current_position();
-		};
-
-		document.addEventListener("keydown", onDocumentKeyDown, false);
-		function onDocumentKeyDown(event) {
-			console.log('event.which', event.which);
-		    const keyCode = event.which;
-		    if (keyCode == 38) { // up
-				current_vertex ++;
-				current_vertex %= 16;
-				update_current_position();
-		    } else if (keyCode == 40) { // down
-				current_vertex += 15;
-				current_vertex %= 16;
-				update_current_position();
-		    } else if (keyCode == 76) { // ll
-				current_vertex = 0;
-				vertices = [];
-				update_current_position();
-				display_all = !display_all;
-			} else if (keyCode == 39) { // right
-				go_east();
-			} else if (keyCode == 37) { // left
- 			 	go_west();
-		    } else if (keyCode == 32) { // space
-				moving = !moving;
-		    }
-		    // animate();
-		};
-
-		function animate() {
-			objs[0].visible = display_all;
-			const dt = moving ? 1e-2 : 0;
-			// line.rotation.y += dt;
-
-			root.rotation.y += dt;
-
-			const current_point = points[current_vertex];
-			// console.log(current_vertex, current_point);
-			marker_tip.position.x = current_point.x;
-			marker_tip.position.y = current_point.y;
-			marker_tip.position.z = current_point.z;
-
-			let kk = 0;
-			const selection = getRandomInt(objs.length);
-			for (let obj of objs)
-				obj.visible = (selection == kk++) || display_all;
-
-			requestAnimationFrame( animate );
-			renderer.render( scene, camera );
-		}
-		animate();
-
-		console.log("banco")
-
-		</script>
-
-	</body>
+    <head>
+        <meta charset="utf-8">
+        <title>hypercube</title>
+        <style>
+            body { margin: 0; }
+            canvas { display: block; }
+            body { background-color: red; font-family: monospace; font-weight: bold; }
+            #current_position { color: white; z-index: 10; position: absolute; }
+        </style>
+    </head>
+    <body>
+        <script src="js/three.js"></script>
+        <script src-"js/app.js"></script>
+
+        <div id="current_position">current_position</div>
+
+        <script type="text/javascript">
+
+        String.prototype.lpad = function(padString, length) {
+            var str = this;
+            while (str.length < length)
+                str = padString + str;
+            return str;
+        }
+
+        function getRandomInt(max) {
+            return Math.floor(Math.random() * Math.floor(max));
+        }
+
+        console.log("app")
+
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.getContext().lineWidth(100);
+
+        document.body.appendChild( renderer.domElement );
+
+        /*{
+            const geometry = new THREE.BoxGeometry();
+            const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+            const cube = new THREE.Mesh( geometry, material );
+            cube.scale.x *= .5;
+            cube.scale.y *= .5;
+            cube.scale.z *= .5;
+
+            //scene.add( cube );
+
+            const wireframe = new THREE.WireframeGeometry( geometry );
+            console.log("wireframe", wireframe);
+
+            const line = new THREE.LineSegments( wireframe, new THREE.LineBasicMaterial( {
+                color: 0xf00fff,
+                linewidth: 1,
+                linecap: 'round', //ignored by WebGLRenderer
+                linejoin:  'round' //ignored by WebGLRenderer
+            } ));
+            line.scale.x *= .55;
+            line.scale.y *= .55;
+            line.scale.z *= .55;
+            //line.material.depthTest = false;
+            //line.material.opacity = 0.25;
+            //line.material.transparent = true;
+            // line.material.color = 0xff0000;
+
+            // scene.add(line);
+        }*/
+
+        let objs = [];
+        let root = new THREE.Mesh();
+        root.rotation.z = Math.PI/10;
+        root.rotation.x = Math.PI/10;
+        scene.add(root);
+
+        const ss = .5;
+
+        let points = [];
+        {
+            points.push( new THREE.Vector3( 1, 1, 1 ) );
+            points.push( new THREE.Vector3( 1, 1, -1 ) );
+            points.push( new THREE.Vector3( 1, -1, -1 ) );
+            points.push( new THREE.Vector3( 1, -1, 1 ) );
+
+            points.push( new THREE.Vector3( ss, -ss, ss ) );
+            points.push( new THREE.Vector3( -ss, -ss, ss ) );
+            points.push( new THREE.Vector3( -ss, ss, ss ) );
+            points.push( new THREE.Vector3( -ss, ss, -ss ) );
+
+            points.push( new THREE.Vector3( -1, 1, -1 ) );
+            points.push( new THREE.Vector3( -1, 1, 1 ) );
+            points.push( new THREE.Vector3( -1, -1, 1 ) );
+            points.push( new THREE.Vector3( -1, -1, -1 ) );
+
+            points.push( new THREE.Vector3( -ss, -ss, -ss ) );
+            points.push( new THREE.Vector3( ss, -ss, -ss ) );
+            points.push( new THREE.Vector3( ss, ss, -ss ) );
+            points.push( new THREE.Vector3( ss, ss, ss ) );
+
+            points.push( new THREE.Vector3( 1, 1, 1 ) );
+        }
+
+        {
+            const geometry_x = new THREE.BoxGeometry(1.5, .2, .2);
+            const geometry_y = new THREE.BoxGeometry(.2, 1.5, .2);
+            const geometry_z = new THREE.BoxGeometry(.2, .2, 1.5);
+            const geometry_w = new THREE.BoxGeometry(.2, .4, .2);
+            // const geometry_w = new THREE.BoxGeometry(1.8, .1, .1);
+
+            const material = new THREE.MeshPhongMaterial({
+                color: 0xff0000,
+            });
+
+            let tubes = [];
+            const make_tube = (geometry, position, scale = 1, is_crooked = false) => {
+                const tube = new THREE.Mesh(geometry, material);
+                tube.position.x = position.x * scale;
+                tube.position.y = position.y * scale;
+                tube.position.z = position.z * scale;
+                const quaternion = new THREE.Quaternion();
+                if (is_crooked)
+                {
+
+                    const foo = 1 / Math.sqrt(3);
+                    quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(foo, -foo, foo));
+                }
+                // quaternion.multiplyScalar(scale);
+                tube.quaternion.copy(quaternion)
+                // tube.scale.multiplyScalar(scale);
+                root.add(tube);
+                tubes.push(tube);
+            };
+
+            // make_tube(geometry_z, new THREE.Vector3(1, 1, 0));
+            // make_tube(geometry_y, new THREE.Vector3(1, 0, -1));
+            // make_tube(geometry_z, new THREE.Vector3(1, -1, 0));
+            // make_tube(geometry_z, new THREE.Vector3(1, -1, 0), ss);
+            // make_tube(geometry_w, new THREE.Vector3((1+ss)/2, -(1+ss/2)/2, (1+ss)/2), 1, true);
+
+        }
+
+        { // north south hamiltonian
+            const geometry = new THREE.BufferGeometry().setFromPoints( points );
+
+            const material = new THREE.LineBasicMaterial({
+                color: 0xffffff
+            });
+            const north_south = new THREE.Line( geometry, material );
+
+            objs.push(north_south);
+        }
+
+
+        {
+            const make_scaled_segments = (indices, color, scale = new THREE.Vector4(1, 1, 1, 1)) => {
+                var points_ = [];
+
+                for (let kk=0, kk_max=indices.length; kk<kk_max; kk+=2)
+                {
+                    const ii = indices[kk];
+                    const jj = indices[kk+1];
+                    let pii = new THREE.Vector3(scale.x*points[ii].x, scale.y*points[ii].y, scale.z*points[ii].z);
+                    let pjj = new THREE.Vector3(scale.x*points[jj].x, scale.y*points[jj].y, scale.z*points[jj].z);
+                    const factor = 1/(1 - scale.w/2);
+                    pii.multiplyScalar(factor)
+                    pjj.multiplyScalar(factor)
+                    // pii.x += delta;
+                    // pjj += delta;
+                    // console.log("*****", ii, jj, pii, pjj);
+                    points_.push(pii);
+                    points_.push(pjj);
+                }
+                var geometry_ = new THREE.BufferGeometry().setFromPoints( points_ );
+
+                var material_ = new THREE.LineBasicMaterial({
+                    color: color,
+                });
+                var object_ = new THREE.LineSegments( geometry_, material_ );
+
+                return object_;
+            }
+
+
+            const edges_rot_x = [
+                0, 1, 1, 2, 2, 3, 3, 0,
+                8, 9, 9, 10, 10, 11, 11, 8,
+                4, 13, 13, 14, 14, 15, 15, 4,
+                5, 6, 6, 7, 7, 12, 12, 5,
+
+            ];
+
+            const edges_rot_y = [
+                0, 1, 1, 8, 8, 9, 9, 0,
+                15, 14, 14, 7, 7, 6, 6, 15,
+                4, 13, 13, 12, 12, 5, 5, 4,
+                3, 2, 2, 11, 11, 10, 10, 3,
+            ];
+
+            const edges_rot_z = [
+                0, 3, 3, 10, 10, 9, 9, 0,
+                4, 5, 5, 6, 6, 15, 15, 4,
+                12, 13, 13, 14, 14, 7, 7, 12,
+                11, 2, 2, 1, 1, 8, 8, 11,
+            ];
+
+            const edges_rot_w = [
+                0, 15, 15, 4, 4, 3, 3, 0,
+                2, 13, 13, 14, 14, 1, 1, 2,
+                7, 8,  8, 11, 11, 12, 12, 7,
+                6, 9, 9, 10, 10, 5, 5, 6,
+            ];
+
+            const bevel_width = .95;
+
+            objs.push(make_scaled_segments(edges_rot_x, 0x00ffff, new THREE.Vector4(1, bevel_width, bevel_width, 0)));
+            objs.push(make_scaled_segments(edges_rot_y, 0xff00ff, new THREE.Vector4(bevel_width, 1, bevel_width, 0)));
+            objs.push(make_scaled_segments(edges_rot_z, 0xffff00, new THREE.Vector4(bevel_width, bevel_width, 1, 0)));
+            objs.push(make_scaled_segments(edges_rot_w, 0x00ff00, new THREE.Vector4(1, bevel_width, 1, -.1)));
+
+            for (let obj of objs)
+                root.add(obj);
+
+        }
+
+        {
+            const geometry = new THREE.IcosahedronGeometry(.2, 3);
+            const material_tip = new THREE.MeshPhongMaterial({ color: 0xaaaaaa });
+            const material_trail = new THREE.MeshPhongMaterial({ color: 0xffff00 });
+            var marker_tip = new THREE.Mesh(geometry, material_tip);
+            root.add(marker_tip);
+
+            var markers_trail = [];
+            for (let kk=0; kk<7; kk++)
+            {
+                const marker = new THREE.Mesh(geometry, material_trail);
+                marker.scale.multiplyScalar(.5);
+
+                markers_trail.push(marker);
+                root.add(marker);
+            }
+        }
+        // var line=new THREE.three3DExtras.tubeLine([-1,-1,0],[1,1,0],0.02,'#FFF');
+
+
+        {
+            const pointLight = new THREE.PointLight( 0xffffff, 1, 100 );
+            pointLight.position.set( 10, 10, 10 );
+            scene.add( pointLight );
+        }
+
+
+        {
+            const pointLight = new THREE.PointLight( 0xaaaaaa, 1, 100 );
+            pointLight.position.set( 0, -20, 0 );
+            scene.add( pointLight );
+        }
+
+        {
+            const pointLight = new THREE.PointLight( 0x222222, 1, 100 );
+            pointLight.position.set( -20, 0, 0 );
+            scene.add( pointLight );
+        }
+
+        camera.position.z = 4;
+
+        let current_vertex = 0;
+        let vertices = [];
+        let is_animated = false;
+        let display_all = true;
+
+        let update_current_position = () => {
+            const label = document.getElementById("current_position");
+            label.textContent = "";
+            label.textContent += `p${(current_vertex+1).toString().lpad("0", 2)} ... `;
+
+            for (let kk=vertices.length-1; kk>=0; kk--)
+                label.textContent += `p${(vertices[kk]+1).toString().lpad("0", 2)} `;
+
+            // console.log("label", label);
+
+
+            for (let kk=0; kk<markers_trail.length; kk++)
+            {
+                if (kk >= vertices.length)
+                    break;
+                const marker = markers_trail[kk];
+                const point = points[vertices[kk]];
+                // console.log(marker, point);
+                marker.position.x = point.x;
+                marker.position.y = point.y;
+                marker.position.z = point.z;
+            }
+
+            vertices.push(current_vertex);
+            while (vertices.length > 7)
+                vertices.shift();
+            // console.log(vertices);
+        };
+
+        update_current_position();
+
+        let go_east = () => {
+            const next = [
+                3, 8, 13, 10,
+                15, 12, 9, 14,
+                11, 0, 5, 2,
+                7, 4, 1, 6,
+            ];
+            // console.log("before", current_vertex)
+            current_vertex = next[current_vertex];
+            // console.log("after", current_vertex)
+            update_current_position();
+        };
+
+        let go_west = () => {
+            const next = [
+                9, 14, 11, 0,
+                13, 10, 15, 12,
+                1, 6, 3, 8,
+                5, 2, 7, 4,
+            ];
+            // console.log("before", current_vertex)
+            current_vertex = next[current_vertex];
+            // console.log("after", current_vertex)
+            update_current_position();
+        };
+
+        const onDocumentKeyDown = (event) => {
+            console.log('event.which', event.which);
+            const keyCode = event.which;
+            if (keyCode == 38) { // up
+                current_vertex ++;
+                current_vertex %= 16;
+                update_current_position();
+            } else if (keyCode == 40) { // down
+                current_vertex += 15;
+                current_vertex %= 16;
+                update_current_position();
+            } else if (keyCode == 76) { // ll
+                current_vertex = 0;
+                vertices = [];
+                update_current_position();
+                display_all = !display_all;
+            } else if (keyCode == 39) { // right
+                go_east();
+            } else if (keyCode == 37) { // left
+                  go_west();
+            } else if (keyCode == 32) { // space
+                is_animated = !is_animated;
+            }
+            // animate();
+        };
+        document.addEventListener("keydown", onDocumentKeyDown, false);
+
+        let xx_prev = 0;
+        let yy_prev = 0;
+        let target_angle = 0;
+        const onMouseMove = (event) => {
+            if (event.buttons != 1)
+                return;
+            const xx_delta = -3.5e-3 * (xx_prev - event.clientX);
+            const yy_delta = 3.5e-3 * (yy_prev - event.clientY);
+            xx_prev = event.clientX;
+            yy_prev = event.clientY;
+            // console.log("mouse", xx_delta, yy_delta, target_angle, root.rotation.y);
+            target_angle += xx_delta;
+        };
+        const onMouseDown = (event) => {
+            if (event.buttons != 1)
+                return;
+            // console.log("down", event);
+            xx_prev = event.clientX;
+            yy_prev = event.clientY;
+        }
+        const onMouseUp = (event) => {
+            // console.log("up", event);
+            xx_prev = 0;
+            yy_prev = 0;
+        }
+        renderer.domElement.addEventListener("mousemove", onMouseMove, false);
+        renderer.domElement.addEventListener("mousedown", onMouseDown, false);
+        renderer.domElement.addEventListener("mouseup", onMouseUp, false);
+
+        function animate() {
+            objs[0].visible = display_all;
+            const dt = 1e-2;
+            // line.rotation.y += dt;
+
+            if (is_animated)
+                target_angle += dt;
+
+            const angle_delta = target_angle - root.rotation.y;
+            // console.log("angle_delta", angle_delta * dt, target_angle, root.rotation.y);
+            root.rotation.y += 10 * angle_delta * dt;
+
+            const current_point = points[current_vertex];
+            // console.log(current_vertex, current_point);
+            marker_tip.position.x = current_point.x;
+            marker_tip.position.y = current_point.y;
+            marker_tip.position.z = current_point.z;
+
+            let kk = 0;
+            const selection = getRandomInt(objs.length);
+            for (let obj of objs)
+                obj.visible = (selection == kk++) || display_all;
+
+            requestAnimationFrame( animate );
+            renderer.render( scene, camera );
+        }
+        animate();
+
+        console.log("banco")
+
+        </script>
+
+    </body>
 </html>
