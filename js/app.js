@@ -94,17 +94,25 @@ let points = [];
         color: 0xaa0000,
     });
 
-    let tubes = new THREE.InstancedMesh(geometry_x, material, 2);
+    let tubes = new THREE.InstancedMesh(geometry_x, material, 3);
     root.add(tubes);
 
-    const transform = new THREE.Matrix4();
-    transform.set(
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 2);
 
-    tubes.setMatrixAt(0, transform);
+    tubes.setMatrixAt(0, new THREE.Matrix4().set(
+        1, 0, 0, 0,
+        0, 1, 0, 1,
+        0, 0, 1, 1,
+        0, 0, 0, 2));
+    tubes.setMatrixAt(1, new THREE.Matrix4().set(
+        0, 1, 0, 1,
+        -1, 0, 0, 0,
+        0, 0, 1, 1,
+        0, 0, 0, 1));
+    tubes.setMatrixAt(2, new THREE.Matrix4().set(
+        0, 1, 0, 1,
+        -1, 0, 0, 0,
+        0, 0, 1, 1,
+        0, 0, 0, 2));
     // tubes.setMatrixAt(1, transform);
     // console.log(transform);
 
