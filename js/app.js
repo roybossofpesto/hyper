@@ -84,45 +84,48 @@ let points = [];
 }
 
 {
-    const geometry_x = new THREE.BoxBufferGeometry(2, .2, .2);
-    const geometry_y = new THREE.BoxBufferGeometry(.2, 2, .2);
-    const geometry_z = new THREE.BoxBufferGeometry(.2, .2, 2);
-    // const geometry_w = new THREE.BoxGeometry(.2, .4, .2);
-    // const geometry_w = new THREE.BoxGeometry(1.8, .1, .1);
+    // const geometry = new THREE.BoxBufferGeometry(2, .15, .15);
+    const geometry = new THREE.CylinderBufferGeometry(.075, .075, 2);
 
     const material = new THREE.MeshPhongMaterial({
         color: 0xaa0000,
     });
 
-    let tubes = new THREE.InstancedMesh(geometry_x, material, 3);
+    let tubes = new THREE.InstancedMesh(geometry, material, 16);
     root.add(tubes);
 
+    const make_tube = (kk, ii, jj) => {
+        const pi = points[ii];
+        const pj = points[jj];
 
-    tubes.setMatrixAt(0, new THREE.Matrix4().set(
-        1, 0, 0, 0,
-        0, 1, 0, 1,
-        0, 0, 1, 1,
-        0, 0, 0, 2));
-    tubes.setMatrixAt(1, new THREE.Matrix4().set(
-        0, 1, 0, 1,
-        -1, 0, 0, 0,
-        0, 0, 1, 1,
-        0, 0, 0, 1));
-    tubes.setMatrixAt(2, new THREE.Matrix4().set(
-        0, 1, 0, 1,
-        -1, 0, 0, 0,
-        0, 0, 1, 1,
-        0, 0, 0, 2));
-    // tubes.setMatrixAt(1, transform);
-    // console.log(transform);
+        const center = new THREE.Vector3();
+        center.addVectors(pj, pi);
+        center.divideScalar(2);
 
+        const ex = new THREE.Vector3();
+        ex.subVectors(pj, pi);
+        ex.divideScalar(2);
 
-    // make_tube(geometry_x, new THREE.Vector3(0, 0, 0));
-    // make_tube(geometry_z, new THREE.Vector3(1, 1, 0));
-    // make_tube(geometry_y, new THREE.Vector3(1, 0, -1));
-    // make_tube(geometry_z, new THREE.Vector3(1, -1, 0));
-    // make_tube(geometry_z, new THREE.Vector3(1, -1, 0), ss);
-    // make_tube(geometry_w, new THREE.Vector3((1+ss)/2, -(1+ss/2)/2, (1+ss)/2), 1, true);
+        const ey = new THREE.Vector3();
+        ey.crossVectors(ex, new THREE.Vector3(0, 0, 1));
+        if (ey.lengthSq() < 1e-3) ey.crossVectors(ex, new THREE.Vector3(0, 1, 0));
+        if (ey.lengthSq() < 1e-3) ey.crossVectors(ex, new THREE.Vector3(1, 0, 0));
+        ey.normalize();
+
+        const ez = new THREE.Vector3();
+        ez.crossVectors(ex, ey);
+        ez.normalize();
+
+        const transform = new THREE.Matrix4();
+        transform.makeBasis(ez, ex, ey);
+        transform.setPosition(center);
+
+        // console.log("***", kk, center, ey.lengthSq());
+        tubes.setMatrixAt(kk, transform);
+    }
+
+    for (let kk=0; kk<16; kk++)
+        make_tube(kk, kk, kk+1);
 }
 
 { // north south hamiltonian
@@ -360,7 +363,7 @@ renderer.domElement.onmouseup = (event) => {
 let top_last = Date.now();
 const animate = () => {
     var top_current = Date.now();
-    var dt = 1e-3 * (top_current - top_last);
+    var dt = Math.min(1e-3 * (top_current - top_last), 50e-3);
     top_last = top_current;
 
     if (is_animated) {
