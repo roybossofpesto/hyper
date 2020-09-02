@@ -9,16 +9,18 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
-console.log("app")
+console.log("app started")
 
-var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-var renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.getContext().lineWidth(100);
-
 document.body.appendChild(renderer.domElement);
+
+const loader = new THREE.TextureLoader();
+
 
 /*{
     const geometry = new THREE.BoxGeometry();
@@ -184,9 +186,12 @@ let points = [];
 {
     // const geometry = new THREE.BoxBufferGeometry(2, .15, .15);
     const geometry = new THREE.CylinderBufferGeometry(.075, .075, 2);
-
+    const texture = loader.load('uv_pattern.png');
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(3, 8);
     const material = new THREE.MeshPhongMaterial({
-        color: 0xffffff,
+        map: texture
     });
 
     var tubes_trail = new THREE.InstancedMesh(geometry, material, 7);
@@ -365,6 +370,8 @@ const animate = () => {
     var dt = Math.min(1e-3 * (top_current - top_last), 50e-3);
     top_last = top_current;
 
+    tubes_trail.material.map.offset.y += 2.5 * dt;
+    tubes_trail.material.map.offset.x += 1.5 * dt;
     if (is_animated) {
         target_angle += dt;
         update_target_angle();
@@ -390,4 +397,4 @@ const animate = () => {
 };
 animate();
 
-console.log("banco")
+console.log("app main loop")
