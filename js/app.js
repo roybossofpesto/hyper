@@ -246,24 +246,56 @@ const make_tube = (tubes, kk, ii, jj) => {
     tubes.setMatrixAt(kk, transform);
 }
 
-//create a synth and connect it to the main output (your speakers)
-const synth = new Tone.Synth().toDestination();
+const reset_trail = (tubes, markers) => {
+    const transform = new THREE.Matrix4().set(
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+    );
+    for (let kk=0; kk<tubes.count; kk++)
+        tubes.setMatrixAt(kk, transform);
+    for (let kk=0; kk<markers.count; kk++)
+        markers.setMatrixAt(kk, transform);
+}
+
+
+
+const dist = new Tone.Distortion(0.8).toDestination();
+
+const reverb_ = new Tone.Reverb ({
+decay : 4. ,
+preDelay : 0.01
+}).connect(dist);
+
+const synth = new Tone.Synth().connect(dist);
+const synth_ = new Tone.Synth().connect(reverb_);
+
+// const synth = new Tone.Synth().toDestination();
 
 const notes = [
-    "C2", "D2", "E2", "F2", "G2", "A2", "B2", 
-    "C3", "D3", "E3", "F3", "G3", "A3", "B3", 
+    "C2", "D2", "E2", "F2", "G2", "A2", "B2",
+    "C3", "D3", "E3", "F3", "G3", "A3", "B3",
     "C4", "D4",
 ];
+
+const get_note = (vertex, pitch) => {
+    let aa = new Tone.Frequency(notes[vertex]);
+    aa = aa.transpose(pitch);
+    return aa;
+}
 
 const update_current_position = (play_sound = true) => {
     if (play_sound) {
         //play a middle 'C' for the duration of an 8th note
         Tone.start();
-        const top = Tone.now() - .2;
+        const top = Tone.now() - .1;
         if (top > 0)
         {
-            synth.triggerAttackRelease(notes[current_vertex], "8n", top);
-
+            const note = new Tone.Frequency(get_note(current_vertex, 0));
+            const note_ = new Tone.Frequency(get_note(current_vertex, 24));
+            synth.triggerAttackRelease(note, "1n", top);
+            synth_.triggerAttackRelease(note_, "1n", top);
         }
     }
 
@@ -339,6 +371,7 @@ document.onkeydown = (event) => {
     } else if (keyCode == 76) { // ll
         current_vertex = 0;
         vertices = [];
+        reset_trail(tubes_trail, markers_trail);
         update_current_position();
         display_all = !display_all;
     } else if (keyCode == 39) { // right
