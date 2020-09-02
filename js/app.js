@@ -249,7 +249,11 @@ const make_tube = (tubes, kk, ii, jj) => {
 //create a synth and connect it to the main output (your speakers)
 const synth = new Tone.Synth().toDestination();
 
-
+const notes = [
+    "C2", "D2", "E2", "F2", "G2", "A2", "B2", 
+    "C3", "D3", "E3", "F3", "G3", "A3", "B3", 
+    "C4", "D4",
+];
 
 const update_current_position = (play_sound = true) => {
     if (play_sound) {
@@ -257,7 +261,10 @@ const update_current_position = (play_sound = true) => {
         Tone.start();
         const top = Tone.now() - .2;
         if (top > 0)
-            synth.triggerAttackRelease("C4", "8n", top);
+        {
+            synth.triggerAttackRelease(notes[current_vertex], "8n", top);
+
+        }
     }
 
     const label = document.getElementById("current_position");
