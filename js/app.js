@@ -246,7 +246,20 @@ const make_tube = (tubes, kk, ii, jj) => {
     tubes.setMatrixAt(kk, transform);
 }
 
-const update_current_position = () => {
+//create a synth and connect it to the main output (your speakers)
+const synth = new Tone.Synth().toDestination();
+
+
+
+const update_current_position = (play_sound = true) => {
+    if (play_sound) {
+        //play a middle 'C' for the duration of an 8th note
+        Tone.start();
+        const top = Tone.now() - .2;
+        if (top > 0)
+            synth.triggerAttackRelease("C4", "8n", top);
+    }
+
     const label = document.getElementById("current_position");
     label.textContent = "";
     label.textContent += `p${(current_vertex+1).toString().lpad("0", 2)} ... `;
@@ -279,7 +292,7 @@ const update_current_position = () => {
         vertices.shift();
     // console.log(vertices);
 };
-update_current_position();
+update_current_position(false);
 let go_east = () => {
     const next = [
         3, 8, 13, 10,
