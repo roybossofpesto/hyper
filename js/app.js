@@ -155,10 +155,10 @@ let points = [];
 
     const bevel_width = .95;
 
-    objs.push(make_scaled_segments(edges_rot_x, 0x00ffff, new THREE.Vector4(1, bevel_width, bevel_width, 0)));
-    objs.push(make_scaled_segments(edges_rot_y, 0xff00ff, new THREE.Vector4(bevel_width, 1, bevel_width, 0)));
-    objs.push(make_scaled_segments(edges_rot_z, 0xffff00, new THREE.Vector4(bevel_width, bevel_width, 1, 0)));
-    objs.push(make_scaled_segments(edges_rot_w, 0x00ff00, new THREE.Vector4(1, bevel_width, 1, -.1)));
+    objs.push(make_scaled_segments(edges_rot_x, 0x550000, new THREE.Vector4(1, bevel_width, bevel_width, 0)));
+    objs.push(make_scaled_segments(edges_rot_y, 0x005500, new THREE.Vector4(bevel_width, 1, bevel_width, 0)));
+    objs.push(make_scaled_segments(edges_rot_z, 0x000055, new THREE.Vector4(bevel_width, bevel_width, 1, 0)));
+    objs.push(make_scaled_segments(edges_rot_w, 0x555555, new THREE.Vector4(1, bevel_width, 1, -.1)));
 
     for (let obj of objs)
         root.add(obj);
