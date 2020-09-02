@@ -289,7 +289,7 @@ const update_current_position = (play_sound = true) => {
     if (play_sound) {
         //play a middle 'C' for the duration of an 8th note
         Tone.start();
-        const top = Tone.now() - .1;
+        const top = Tone.now() - .15;
         if (top > 0)
         {
             const note = new Tone.Frequency(get_note(current_vertex, 0));
