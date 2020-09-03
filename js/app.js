@@ -285,8 +285,19 @@ const get_note = (vertex, pitch) => {
     return aa;
 }
 
-const update_current_position = (play_sound = true) => {
-    if (play_sound) {
+let sampler_loaded = false;
+let sampler = new Tone.Sampler({
+    "C3": 'samples/kick.wav',
+    "D3": 'samples/snare.wav',
+    "E3": 'samples/tom.wav',
+    "F3": 'samples/hihat.wav',
+}, () => {
+    console.log("loaded samples");
+    sampler_loaded = true;
+}).toDestination();
+
+const update_current_position = (drum_note) => {
+    if (drum_note) {
         //play a middle 'C' for the duration of an 8th note
         Tone.start();
         const top = Tone.now() - .15;
@@ -296,7 +307,10 @@ const update_current_position = (play_sound = true) => {
             const note_ = new Tone.Frequency(get_note(current_vertex, 24));
             synth.triggerAttackRelease(note, "1n", top);
             synth_.triggerAttackRelease(note_, "1n", top);
+            if (sampler_loaded)
+                sampler.triggerAttack(drum_note, top);
         }
+
     }
 
     const label = document.getElementById("current_position");
@@ -331,7 +345,7 @@ const update_current_position = (play_sound = true) => {
         vertices.shift();
     // console.log(vertices);
 };
-update_current_position(false);
+update_current_position();
 let go_east = () => {
     const next = [
         3, 8, 13, 10,
@@ -342,7 +356,7 @@ let go_east = () => {
     // console.log("before", current_vertex)
     current_vertex = next[current_vertex];
     // console.log("after", current_vertex)
-    update_current_position();
+    update_current_position("E3");
 };
 let go_west = () => {
     const next = [
@@ -354,6 +368,22 @@ let go_west = () => {
     // console.log("before", current_vertex)
     current_vertex = next[current_vertex];
     // console.log("after", current_vertex)
+    update_current_position("F3");
+};
+const go_south = () => {
+    current_vertex++;
+    current_vertex %= 16;
+    update_current_position("C3");
+};
+const go_north = () => {
+    current_vertex += 15;
+    current_vertex %= 16;
+    update_current_position("D3");
+};
+const reset = () => {
+    current_vertex = 0;
+    vertices = [];
+    reset_trail(tubes_trail, markers_trail);
     update_current_position();
 };
 
@@ -361,26 +391,21 @@ document.onkeydown = (event) => {
     console.log('event.which', event.which);
     const keyCode = event.which;
     if (keyCode == 38) { // up
-        current_vertex++;
-        current_vertex %= 16;
-        update_current_position();
+        go_south();
     } else if (keyCode == 40) { // down
-        current_vertex += 15;
-        current_vertex %= 16;
-        update_current_position();
-    } else if (keyCode == 76) { // ll
-        current_vertex = 0;
-        vertices = [];
-        reset_trail(tubes_trail, markers_trail);
-        update_current_position();
-        display_all = !display_all;
+        go_north();
     } else if (keyCode == 39) { // right
         go_east();
     } else if (keyCode == 37) { // left
         go_west();
     } else if (keyCode == 32) { // space
         is_animated = !is_animated;
+    } else if (keyCode == 82) { // rr
+        reset();
+    } else if (keyCode == 76) { // ll
+        display_all = !display_all;
     }
+
     // animate();
 };
 
