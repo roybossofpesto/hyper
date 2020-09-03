@@ -370,30 +370,44 @@ let go_west = () => {
     // console.log("after", current_vertex)
     update_current_position("F3");
 };
-const go_south = () => {
-    current_vertex++;
-    current_vertex %= 16;
-    update_current_position("C3");
-};
 const go_north = () => {
-    current_vertex += 15;
+    current_vertex++;
     current_vertex %= 16;
     update_current_position("D3");
 };
+const go_south = () => {
+    current_vertex += 15;
+    current_vertex %= 16;
+    update_current_position("C3");
+};
+
+
+let xx_prev = 0;
+let yy_prev = 0;
+let target_angle = 0;
+const update_target_angle = () => {
+    const label = document.getElementById("target_angle");
+    label.textContent = `${Math.round(180*target_angle/Math.PI)}°`;
+};
+update_target_angle();
+
 const reset = () => {
+    target_angle = 0;
+    root.rotation.y = 0;
     current_vertex = 0;
     vertices = [];
     reset_trail(tubes_trail, markers_trail);
     update_current_position();
+    update_target_angle();
 };
 
 document.onkeydown = (event) => {
     console.log('event.which', event.which);
     const keyCode = event.which;
     if (keyCode == 38) { // up
-        go_south();
-    } else if (keyCode == 40) { // down
         go_north();
+    } else if (keyCode == 40) { // down
+        go_south();
     } else if (keyCode == 39) { // right
         go_east();
     } else if (keyCode == 37) { // left
@@ -408,15 +422,6 @@ document.onkeydown = (event) => {
 
     // animate();
 };
-
-let xx_prev = 0;
-let yy_prev = 0;
-let target_angle = 0;
-const update_target_angle = () => {
-    const label = document.getElementById("target_angle");
-    label.textContent = `${Math.round(180*target_angle/Math.PI)}°`;
-};
-update_target_angle();
 
 renderer.domElement.onmousemove = (event) => {
     if (event.buttons != 1)
