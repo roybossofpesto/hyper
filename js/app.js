@@ -449,6 +449,12 @@ renderer.domElement.onmouseup = (event) => {
     yy_prev = 0;
 }
 
+if (navigator.requestMIDIAccess) {
+    console.log('This browser supports WebMIDI!');
+} else {
+    console.log('WebMIDI is not supported in this browser.');
+}
+
 let top_last = Date.now();
 const animate = () => {
     var top_current = Date.now();
