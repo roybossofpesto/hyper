@@ -449,8 +449,21 @@ renderer.domElement.onmouseup = (event) => {
     yy_prev = 0;
 }
 
+const midi_message = (midiMessage) => {
+    console.log('prout', midiMessage)
+};
+
 if (navigator.requestMIDIAccess) {
     console.log('This browser supports WebMIDI!');
+    navigator.requestMIDIAccess().then((midiAccess) => {
+        const inputs = midiAccess.inputs;
+        const outputs = midiAccess.outputs;
+        console.log('midi', inputs, outputs);
+        for (const input of inputs.values())
+            input.onmidimessage = midi_message;
+    }, () => {
+        console.log(':(');
+    });
 } else {
     console.log('WebMIDI is not supported in this browser.');
 }
