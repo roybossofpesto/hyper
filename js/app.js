@@ -250,11 +250,25 @@ const synth_ = new Tone.Synth().connect(reverb_);
 
 // const synth = new Tone.Synth().toDestination();
 
-const notes = [
+const notes_penta = [ // penta
+    "C2", "D2", "E2", "G2", "B2",
+    "C3", "D3", "E3", "G3", "B3",
+    "C4", "D4", "E4", "G4", "B4",
+    "C5",
+];
+
+const notes_diatonic = [ // diatonic
     "C2", "D2", "E2", "F2", "G2", "A2", "B2",
     "C3", "D3", "E3", "F3", "G3", "A3", "B3",
     "C4", "D4",
 ];
+
+scales = {
+    "penta": notes_penta,
+    "diatonic": notes_diatonic,
+}
+
+notes = scales["penta"];
 
 const get_note = (vertex, pitch) => {
     let aa = new Tone.Frequency(notes[vertex]);
@@ -273,6 +287,9 @@ let sampler = new Tone.Sampler({
     sampler_loaded = true;
 }).toDestination();
 
+sampler.volume.value = -13;
+synth.volume.value = -27;
+synth_.volume.value = -25;
 
 let current_vertex = 0;
 let vertices = [];
@@ -478,7 +495,20 @@ const callbacks = {
     south: go_south,
     east: go_east,
     west: go_west,
+    set_penta_scale: () => {
+        console.log("penta")
+        notes = scales["penta"];
+    },
+    set_diatonic_scale: () => {
+        console.log("diatonic")
+        notes = scales["diatonic"];
+    },
 };
+
+const scales_gui = main_gui.addFolder('Scale');
+scales_gui.add(callbacks, 'set_penta_scale').name('penta');
+scales_gui.add(callbacks, 'set_diatonic_scale').name('diatonic');
+
 const callbacks_gui = main_gui.addFolder('Controls');
 callbacks_gui.add(callbacks, 'reset').name('reset [r]');
 callbacks_gui.add(callbacks, 'north').name('N snare [up]');
