@@ -23,46 +23,17 @@ function shuffle(a) {
 
 console.log("app started")
 
+const main_container = document.getElementById('main_container');
+console.log(main_container.clientWidth, main_container.clientHeight);
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(60, main_container.clientWidth / main_container.clientHeight, 0.1, 1000);
 
 const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.getContext().lineWidth(100);
-document.body.appendChild(renderer.domElement);
+renderer.setSize(main_container.clientWidth, main_container.clientHeight);
+renderer.setClearColor(0x070707);
+main_container.appendChild(renderer.domElement);
 
 const loader = new THREE.TextureLoader();
-
-
-/*{
-    const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
-    const cube = new THREE.Mesh( geometry, material );
-    cube.scale.x *= .5;
-    cube.scale.y *= .5;
-    cube.scale.z *= .5;
-
-    //scene.add( cube );
-
-    const wireframe = new THREE.WireframeGeometry( geometry );
-    console.log("wireframe", wireframe);
-
-    const line = new THREE.LineSegments( wireframe, new THREE.LineBasicMaterial( {
-        color: 0xf00fff,
-        linewidth: 1,
-        linecap: 'round', //ignored by WebGLRenderer
-        linejoin:  'round' //ignored by WebGLRenderer
-    } ));
-    line.scale.x *= .55;
-    line.scale.y *= .55;
-    line.scale.z *= .55;
-    //line.material.depthTest = false;
-    //line.material.opacity = 0.25;
-    //line.material.transparent = true;
-    // line.material.color = 0xff0000;
-
-    // scene.add(line);
-}*/
 
 let objs = [];
 let root = new THREE.Mesh();
@@ -70,10 +41,11 @@ root.rotation.z = Math.PI / 10;
 root.rotation.x = Math.PI / 10;
 scene.add(root);
 
-const ss = .5;
 let points = [];
 
 {
+    const ss = .5;
+
     points.push(new THREE.Vector3(1, 1, 1));
     points.push(new THREE.Vector3(1, 1, -1));
     points.push(new THREE.Vector3(1, -1, -1));
@@ -223,11 +195,6 @@ let points = [];
 
 camera.position.z = 4;
 
-let current_vertex = 0;
-let vertices = [];
-let is_animated = false;
-let display_all = true;
-
 const make_tube = (tubes, kk, ii, jj) => {
     const pi = points[ii];
     const pj = points[jj];
@@ -265,22 +232,20 @@ const reset_trail = (tubes, markers) => {
         0, 0, 0, 0,
         0, 0, 0, 0,
     );
-    for (let kk=0; kk<tubes.count; kk++)
+    for (let kk = 0; kk < tubes.count; kk++)
         tubes.setMatrixAt(kk, transform);
-    for (let kk=0; kk<markers.count; kk++)
+    for (let kk = 0; kk < markers.count; kk++)
         markers.setMatrixAt(kk, transform);
 }
 
+const disto = new Tone.Distortion(0.8).toDestination();
 
+const synth = new Tone.Synth().connect(disto);
 
-const dist = new Tone.Distortion(0.8).toDestination();
-
-const reverb_ = new Tone.Reverb ({
-decay : 4. ,
-preDelay : 0.01
-}).connect(dist);
-
-const synth = new Tone.Synth().connect(dist);
+const reverb_ = new Tone.Reverb({
+    decay: 4.,
+    preDelay: 0.01
+}).connect(disto);
 const synth_ = new Tone.Synth().connect(reverb_);
 
 // const synth = new Tone.Synth().toDestination();
@@ -308,13 +273,20 @@ let sampler = new Tone.Sampler({
     sampler_loaded = true;
 }).toDestination();
 
+
+let current_vertex = 0;
+let vertices = [];
+const visuals = {
+    is_animated: false,
+    display_all: true,
+};
+
 const update_current_position = (drum_note) => {
     if (drum_note) {
-        //play a middle 'C' for the duration of an 8th note
+        Tone.context.lookAhead = 0
         Tone.start();
         const top = Tone.now() - .15;
-        if (top > 0)
-        {
+        if (top > 0) {
             const note = new Tone.Frequency(get_note(current_vertex, 0));
             const note_ = new Tone.Frequency(get_note(current_vertex, 24));
             synth.triggerAttackRelease(note, "1n", top);
@@ -358,7 +330,7 @@ const update_current_position = (drum_note) => {
     // console.log(vertices);
 };
 update_current_position();
-let go_east = () => {
+const go_east = () => {
     const next = [
         3, 8, 13, 10,
         15, 12, 9, 14,
@@ -370,7 +342,7 @@ let go_east = () => {
     // console.log("after", current_vertex)
     update_current_position("E3");
 };
-let go_west = () => {
+const go_west = () => {
     const next = [
         9, 14, 11, 0,
         13, 10, 15, 12,
@@ -425,18 +397,17 @@ document.onkeydown = (event) => {
     } else if (keyCode == 37) { // left
         go_west();
     } else if (keyCode == 32) { // space
-        is_animated = !is_animated;
+        visuals.is_animated = !visuals.is_animated;
     } else if (keyCode == 82) { // rr
         reset();
     } else if (keyCode == 83) { // ss
         shuffle(notes);
     } else if (keyCode == 76) { // ll
-        display_all = !display_all;
+        visuals.display_all = !visuals.display_all;
     }
 
     // animate();
 };
-
 renderer.domElement.onmousemove = (event) => {
     if (event.buttons != 1)
         return;
@@ -469,7 +440,7 @@ const animate = () => {
 
     tubes_trail.material.map.offset.y += 2.5 * dt;
     tubes_trail.material.map.offset.x += 1.5 * dt;
-    if (is_animated) {
+    if (visuals.is_animated) {
         target_angle += dt;
         update_target_angle();
     }
@@ -487,11 +458,36 @@ const animate = () => {
     let kk = 0;
     const selection = getRandomInt(objs.length);
     for (let obj of objs)
-        obj.visible = (selection == kk++) || display_all;
+        obj.visible = (selection == kk++) || visuals.display_all;
 
-    requestAnimationFrame(animate);
     renderer.render(scene, camera);
+    requestAnimationFrame(animate);
 };
 animate();
 
-console.log("app main loop")
+const main_gui = new dat.GUI();
+
+const audio_gui = main_gui.addFolder('Audio');
+audio_gui.add(sampler.volume, 'value').min(-60).max(0).name('sampler');
+audio_gui.add(synth.volume, 'value').min(-60).max(0).name('synth');
+audio_gui.add(synth_.volume, 'value').min(-60).max(0).name('synth_');
+
+const callbacks = {
+    reset: reset,
+    north: go_north,
+    south: go_south,
+    east: go_east,
+    west: go_west,
+};
+const callbacks_gui = main_gui.addFolder('Controls');
+callbacks_gui.add(callbacks, 'reset').name('reset [r]');
+callbacks_gui.add(callbacks, 'north').name('N snare [up]');
+callbacks_gui.add(callbacks, 'south').name('S kick [down]');
+callbacks_gui.add(callbacks, 'east').name('E tom [right]');
+callbacks_gui.add(callbacks, 'west').name('W hihat [left]');
+
+const visuals_gui = main_gui.addFolder('Visuals');
+visuals_gui.add(visuals, 'display_all').name('not strobe [l]').listen();
+visuals_gui.add(visuals, 'is_animated').name('animation&nbsp;[space]').listen();
+
+console.log("app main loop");
