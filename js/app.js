@@ -449,8 +449,18 @@ renderer.domElement.onmouseup = (event) => {
     yy_prev = 0;
 }
 
-const midi_message = (midiMessage) => {
-    console.log('prout', midiMessage)
+const midi_message = (message) => {
+    const command = message.data[0];
+    const note = message.data[1];
+    // console.log('event midi', command, note);
+    if (command != 144)
+        return;
+    console.log('event midi', note);
+    switch (note % 12) {
+        case 0:
+            go_north();
+            break;
+    }
 };
 
 if (navigator.requestMIDIAccess) {
@@ -458,7 +468,7 @@ if (navigator.requestMIDIAccess) {
     navigator.requestMIDIAccess().then((midiAccess) => {
         const inputs = midiAccess.inputs;
         const outputs = midiAccess.outputs;
-        console.log('midi', inputs, outputs);
+        console.log('init midi', inputs, outputs);
         for (const input of inputs.values())
             input.onmidimessage = midi_message;
     }, () => {
