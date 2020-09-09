@@ -298,7 +298,7 @@ const visuals = {
     display_all: true,
 };
 
-const update_current_position = (drum_note) => {
+const trigger_sound = (drum_note) => {
     if (drum_note) {
         Tone.context.lookAhead = 0
         Tone.start();
@@ -313,6 +313,10 @@ const update_current_position = (drum_note) => {
         }
 
     }
+};
+
+const update_current_position = (drum_note) => {
+    trigger_sound(drum_note);
 
     const label = document.getElementById("current_position");
     label.textContent = "";
@@ -460,6 +464,16 @@ const midi_message = (message) => {
         case 0:
             go_north();
             break;
+        case 2:
+            go_south();
+            break;
+        case 4:
+            go_east();
+            break;
+        case 5:
+            go_west();
+            break;
+        default:    
     }
 };
 
