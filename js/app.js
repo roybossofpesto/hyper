@@ -197,10 +197,10 @@ let points = [];
 {
     // const geometry = new THREE.BoxBufferGeometry(2, .15, .15);
     const geometry = new THREE.CylinderBufferGeometry(.075, .075, 2);
-    const texture = loader.load('uv_pattern.png');
+    const texture = loader.load('uv_pattern_line_with_arrow.png');
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(3, 8);
+    texture.repeat.set(3, 6);
     const material = new THREE.MeshPhongMaterial({
         map: texture
     });
@@ -526,7 +526,8 @@ const animate = () => {
     top_last = top_current;
 
     tubes_trail.material.map.offset.y += 2.5 * dt;
-    tubes_trail.material.map.offset.x += 1.5 * dt;
+    //tubes_trail.material.map.offset.x += 1.5 * dt;
+
     if (visuals.is_animated) {
         target_angle += dt;
         update_target_angle();
