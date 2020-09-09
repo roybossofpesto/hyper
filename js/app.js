@@ -150,21 +150,48 @@ let points = [];
 
 {
     const geometry = new THREE.IcosahedronBufferGeometry(.2, 2);
-    const material = new THREE.MeshPhongMaterial({
-        color: 0xaa0000
-    });
+    const material = new THREE.MeshStandardMaterial({
+        color: 0xff0000,
+        roughness: .1,
+        metalness: 1,
+        // map: texture_env,
+        // envMap: envmap,
+        envMapIntensity: 1,
+    })
     var marker_tip = new THREE.Mesh(geometry, material);
     root.add(marker_tip);
 }
 
 {
     const geometry = new THREE.IcosahedronBufferGeometry(.1, 2);
-    const material = new THREE.MeshPhongMaterial({
-        color: 0xffaa00
-    });
+    const material = new THREE.MeshStandardMaterial({
+        color: 0xffaa00,
+        roughness: .1,
+        metalness: 1,
+        // map: texture_env,
+        // envMap: envmap,
+        envMapIntensity: 1,
+    })
 
     var markers_trail = new THREE.InstancedMesh(geometry, material, 7);
     root.add(markers_trail);
+}
+
+{
+    const generator = new THREE.PMREMGenerator(renderer)
+    generator.compileEquirectangularShader();
+
+    loader.load('env_map.jpg', (texture) => {
+        texture.encoding = THREE.sRGBEncoding;
+        const target = generator.fromEquirectangular(texture)
+        texture.dispose();
+
+        scene.background =  target.texture;
+        marker_tip.material.envMap = target.texture;
+        marker_tip.material.needsUpdate = true;
+        markers_trail.material.envMap = target.texture;
+        markers_trail.material.needsUpdate = true;
+    });
 }
 
 {
@@ -473,7 +500,7 @@ const midi_message = (message) => {
         case 5:
             go_west();
             break;
-        default:    
+        default:
     }
 };
 
