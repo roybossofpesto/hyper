@@ -178,6 +178,31 @@ let points = [];
 }
 
 {
+    // const geometry = new THREE.BoxBufferGeometry(2, .15, .15);
+    const geometry = new THREE.CylinderBufferGeometry(.075, .075, 2);
+    const texture_basecolor = loader.load('uv_pattern_line_with_arrow_basecolor.png');
+    texture_basecolor.wrapS = THREE.RepeatWrapping;
+    texture_basecolor.wrapT = THREE.RepeatWrapping;
+    texture_basecolor.repeat.set(3, 4);
+    texture_basecolor.offset.x = .5;
+    const texture_metalness = loader.load('uv_pattern_line_with_arrow_metalness.png');
+    texture_metalness.wrapS = THREE.RepeatWrapping;
+    texture_metalness.wrapT = THREE.RepeatWrapping;
+    texture_metalness.repeat.set(3, 4);
+    texture_metalness.offset.x = .5;
+
+    const material = new THREE.MeshStandardMaterial({
+        map: texture_basecolor,
+        metalnessMap: texture_metalness,
+        roughness: .1,
+        metalness: 1,
+    });
+
+    var tubes_trail = new THREE.InstancedMesh(geometry, material, 7);
+    root.add(tubes_trail);
+}
+
+{
     const generator = new THREE.PMREMGenerator(renderer)
     generator.compileEquirectangularShader();
 
@@ -186,27 +211,14 @@ let points = [];
         const target = generator.fromEquirectangular(texture)
         texture.dispose();
 
-        scene.background =  target.texture;
+        // scene.background =  target.texture;
         marker_tip.material.envMap = target.texture;
         marker_tip.material.needsUpdate = true;
         markers_trail.material.envMap = target.texture;
         markers_trail.material.needsUpdate = true;
+        tubes_trail.material.envMap = target.texture;
+        tubes_trail.material.needsUpdate = true;
     });
-}
-
-{
-    // const geometry = new THREE.BoxBufferGeometry(2, .15, .15);
-    const geometry = new THREE.CylinderBufferGeometry(.075, .075, 2);
-    const texture = loader.load('uv_pattern_line_with_arrow.png');
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(3, 6);
-    const material = new THREE.MeshPhongMaterial({
-        map: texture
-    });
-
-    var tubes_trail = new THREE.InstancedMesh(geometry, material, 7);
-    root.add(tubes_trail);
 }
 
 {
@@ -525,8 +537,8 @@ const animate = () => {
     var dt = Math.min(1e-3 * (top_current - top_last), 50e-3);
     top_last = top_current;
 
-    tubes_trail.material.map.offset.y += 2.5 * dt;
-    //tubes_trail.material.map.offset.x += 1.5 * dt;
+    tubes_trail.material.map.offset.y += 1.5 * dt;
+    tubes_trail.material.metalnessMap.offset.y += 1.5 * dt;
 
     if (visuals.is_animated) {
         target_angle += dt;
