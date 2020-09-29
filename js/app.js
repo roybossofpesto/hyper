@@ -149,27 +149,35 @@ let points = [];
 }
 
 {
-    const geometry = new THREE.IcosahedronBufferGeometry(.2, 2);
-    const material = new THREE.MeshToonMaterial({
-        color: 0xff0000,
-        // roughness: .1,
-        // metalness: 1,
-    })
-    var marker_tip = new THREE.Mesh(geometry, material);
-    root.add(marker_tip);
-}
+    const texture_normal = loader.load('uv_crackles_normal.png');
 
-{
-    const geometry = new THREE.IcosahedronBufferGeometry(.1, 2);
-    const material = new THREE.MeshToonMaterial({
-        color: 0xffaa00,
-        // roughness: .1,
-        // metalness: 1,
-        // envMapIntensity: 1,
-    })
+    {
+        texture_normal.wrapS = THREE.RepeatWrapping;
+        texture_normal.wrapT = THREE.RepeatWrapping;
 
-    var markers_trail = new THREE.InstancedMesh(geometry, material, 7);
-    root.add(markers_trail);
+        const geometry = new THREE.IcosahedronBufferGeometry(.2, 2);
+        const material = new THREE.MeshStandardMaterial({
+            normalMap: texture_normal,
+            color: 0xff0000,
+            roughness: .2,
+            envMapIntensity: 5,
+        })
+        var marker_tip = new THREE.Mesh(geometry, material);
+        root.add(marker_tip);
+    }
+
+    {
+        const geometry = new THREE.IcosahedronBufferGeometry(.1, 2);
+        const material = new THREE.MeshStandardMaterial({
+            normalMap: texture_normal,
+            color: 0xffff00,
+            roughness: .2,
+            envMapIntensity: 5,
+        })
+
+        var markers_trail = new THREE.InstancedMesh(geometry, material, 7);
+        root.add(markers_trail);
+    }
 }
 
 {
@@ -186,18 +194,18 @@ let points = [];
     texture_metalness.repeat.set(3, 4);
     texture_metalness.offset.x = .5;*/
 
-    const material = new THREE.MeshToonMaterial({
+    const material = new THREE.MeshStandardMaterial({
         map: texture_basecolor,
         // metalnessMap: texture_metalness,
-        // roughness: .1,
-        // metalness: 1,
+        roughness: .2,
+        envMapIntensity: 5,
     });
 
     var tubes_trail = new THREE.InstancedMesh(geometry, material, 7);
     root.add(tubes_trail);
 }
 
-/*{
+{
     const generator = new THREE.PMREMGenerator(renderer)
     generator.compileEquirectangularShader();
 
@@ -206,7 +214,7 @@ let points = [];
         const target = generator.fromEquirectangular(texture)
         texture.dispose();
 
-        scene.background =  target.texture;
+        // scene.background =  target.texture;
         marker_tip.material.envMap = target.texture;
         marker_tip.material.needsUpdate = true;
         markers_trail.material.envMap = target.texture;
@@ -214,10 +222,10 @@ let points = [];
         tubes_trail.material.envMap = target.texture;
         tubes_trail.material.needsUpdate = true;
     });
-}*/
+}
 
 {
-    const light = new THREE.PointLight(0xffffff, 1);
+    const light = new THREE.PointLight(0xffffff, .2);
     light.position.set(2, .5, 2);
     scene.add(light);
 }
@@ -329,7 +337,8 @@ let current_vertex = 0;
 let vertices = [];
 const visuals = {
     is_animated: false,
-    display_all: true,
+    strobe_mode: true,
+    trail_only: false,
 };
 
 const trigger_sound = (drum_note) => {
@@ -458,9 +467,10 @@ document.onkeydown = (event) => {
     } else if (keyCode == 83) { // ss
         shuffle(notes);
     } else if (keyCode == 76) { // ll
-        visuals.display_all = !visuals.display_all;
+        visuals.strobe_mode = !visuals.strobe_mode;
+    } else if (keyCode == 77) { // mm
+        visuals.trail_only = !visuals.trail_only;
     }
-
     // animate();
 };
 renderer.domElement.onmousemove = (event) => {
@@ -553,7 +563,7 @@ const animate = () => {
     let kk = 0;
     const selection = getRandomInt(objs.length);
     for (let obj of objs)
-        obj.visible = (selection == kk++) || visuals.display_all;
+        obj.visible = ((selection == kk++) || !visuals.strobe_mode) && !visuals.trail_only;
 
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
@@ -595,7 +605,8 @@ callbacks_gui.add(callbacks, 'east').name('E tom [right]');
 callbacks_gui.add(callbacks, 'west').name('W hihat [left]');
 
 const visuals_gui = main_gui.addFolder('Visuals');
-visuals_gui.add(visuals, 'display_all').name('not strobe [l]').listen();
+visuals_gui.add(visuals, 'strobe_mode').name('strobe mode [l]').listen();
+visuals_gui.add(visuals, 'trail_only').name('trail only [m]').listen();
 visuals_gui.add(visuals, 'is_animated').name('animation&nbsp;[space]').listen();
 
 console.log("app main loop");
