@@ -73,7 +73,7 @@ let points = [];
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
     const material = new THREE.LineBasicMaterial({
-        color: 0xffffff
+        color: 0x777777
     });
 
     const north_south = new THREE.Line(geometry, material);
@@ -150,13 +150,10 @@ let points = [];
 
 {
     const geometry = new THREE.IcosahedronBufferGeometry(.2, 2);
-    const material = new THREE.MeshStandardMaterial({
+    const material = new THREE.MeshToonMaterial({
         color: 0xff0000,
-        roughness: .1,
-        metalness: 1,
-        // map: texture_env,
-        // envMap: envmap,
-        envMapIntensity: 1,
+        // roughness: .1,
+        // metalness: 1,
     })
     var marker_tip = new THREE.Mesh(geometry, material);
     root.add(marker_tip);
@@ -164,13 +161,11 @@ let points = [];
 
 {
     const geometry = new THREE.IcosahedronBufferGeometry(.1, 2);
-    const material = new THREE.MeshStandardMaterial({
+    const material = new THREE.MeshToonMaterial({
         color: 0xffaa00,
-        roughness: .1,
-        metalness: 1,
-        // map: texture_env,
-        // envMap: envmap,
-        envMapIntensity: 1,
+        // roughness: .1,
+        // metalness: 1,
+        // envMapIntensity: 1,
     })
 
     var markers_trail = new THREE.InstancedMesh(geometry, material, 7);
@@ -180,29 +175,29 @@ let points = [];
 {
     // const geometry = new THREE.BoxBufferGeometry(2, .15, .15);
     const geometry = new THREE.CylinderBufferGeometry(.075, .075, 2);
-    const texture_basecolor = loader.load('uv_pattern_line_with_arrow_basecolor.png');
+    const texture_basecolor = loader.load('uv_pattern_line.png');
     texture_basecolor.wrapS = THREE.RepeatWrapping;
     texture_basecolor.wrapT = THREE.RepeatWrapping;
     texture_basecolor.repeat.set(3, 4);
     texture_basecolor.offset.x = .5;
-    const texture_metalness = loader.load('uv_pattern_line_with_arrow_metalness.png');
+    /*const texture_metalness = loader.load('uv_pattern_line_with_arrow_metalness.png');
     texture_metalness.wrapS = THREE.RepeatWrapping;
     texture_metalness.wrapT = THREE.RepeatWrapping;
     texture_metalness.repeat.set(3, 4);
-    texture_metalness.offset.x = .5;
+    texture_metalness.offset.x = .5;*/
 
-    const material = new THREE.MeshStandardMaterial({
+    const material = new THREE.MeshToonMaterial({
         map: texture_basecolor,
-        metalnessMap: texture_metalness,
-        roughness: .1,
-        metalness: 1,
+        // metalnessMap: texture_metalness,
+        // roughness: .1,
+        // metalness: 1,
     });
 
     var tubes_trail = new THREE.InstancedMesh(geometry, material, 7);
     root.add(tubes_trail);
 }
 
-{
+/*{
     const generator = new THREE.PMREMGenerator(renderer)
     generator.compileEquirectangularShader();
 
@@ -211,7 +206,7 @@ let points = [];
         const target = generator.fromEquirectangular(texture)
         texture.dispose();
 
-        // scene.background =  target.texture;
+        scene.background =  target.texture;
         marker_tip.material.envMap = target.texture;
         marker_tip.material.needsUpdate = true;
         markers_trail.material.envMap = target.texture;
@@ -219,18 +214,18 @@ let points = [];
         tubes_trail.material.envMap = target.texture;
         tubes_trail.material.needsUpdate = true;
     });
-}
+}*/
 
 {
-    const directionalLight = new THREE.DirectionalLight(0xaaaaaa, 0.5);
-    directionalLight.position.set(-2, 2, 1);
-    scene.add(directionalLight);
-}
-
-{
-    var light = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
+    const light = new THREE.PointLight(0xffffff, 1);
+    light.position.set(2, .5, 2);
     scene.add(light);
 }
+
+/*{
+    var light = new THREE.HemisphereLight(0xffffbb, 0x080820, .5);
+    scene.add(light);
+}*/
 
 camera.position.z = 4;
 
@@ -446,7 +441,7 @@ const reset = () => {
 };
 
 document.onkeydown = (event) => {
-    console.log('event.which', event.which);
+    // console.log('event keydown', event.which);
     const keyCode = event.which;
     if (keyCode == 38) { // up
         go_north();
@@ -538,7 +533,7 @@ const animate = () => {
     top_last = top_current;
 
     tubes_trail.material.map.offset.y += 1.5 * dt;
-    tubes_trail.material.metalnessMap.offset.y += 1.5 * dt;
+    // tubes_trail.material.metalnessMap.offset.y += 1.5 * dt;
 
     if (visuals.is_animated) {
         target_angle += dt;
