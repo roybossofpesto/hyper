@@ -302,9 +302,17 @@ const notes_diatonic = [ // diatonic
     "C4", "D4",
 ];
 
+const notes_mbira = [ // diatonic
+    "C2", "G2", "E2", "G2",
+    "C2", "G2", "E2", "A2",
+    "C2", "G2", "F2", "A2",
+    "D2", "A2", "F2", "A2",
+];
+
 scales = {
     "penta": notes_penta,
     "diatonic": notes_diatonic,
+    "mbira": notes_mbira,
 }
 
 notes = scales["penta"];
@@ -586,11 +594,15 @@ const callbacks = {
         console.log("diatonic")
         notes = scales["diatonic"];
     },
+    set_mbira_scale: () => {
+        notes = scales ["mbira"];
+    }
 };
 
 const scales_gui = main_gui.addFolder('Scale');
 scales_gui.add(callbacks, 'set_penta_scale').name('penta');
 scales_gui.add(callbacks, 'set_diatonic_scale').name('diatonic');
+scales_gui.add(callbacks, 'set_mbira_scale').name('mbira');
 
 const callbacks_gui = main_gui.addFolder('Controls');
 callbacks_gui.add(callbacks, 'reset').name('reset [r]');
