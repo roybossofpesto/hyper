@@ -1,4 +1,5 @@
 import * as THREE from './three.module.js'
+import { GLTFLoader } from './GLTFLoader.js'
 
 console.log("app started")
 
@@ -13,7 +14,10 @@ renderer.setSize(main_container.clientWidth, main_container.clientHeight);
 renderer.setClearColor(0x020202);
 main_container.appendChild(renderer.domElement);
 
-const loader = new THREE.TextureLoader();
+const texture_loader = new THREE.TextureLoader();
+const gltf_loader = new GLTFLoader();
+
+//////////////////////////////////////////////
 
 //////////////////////////////////////////////
 
@@ -22,8 +26,15 @@ const target = new THREE.Quaternion().set(0, 0, 0, 1);
 const root = new THREE.Mesh();
 scene.add(root);
 
-{
-    const texture_color = loader.load('textures/uv_debug.jpg');
+
+gltf_loader.load('cube.glb', (data) => {
+    console.log('loaded cube');
+    console.log(data.scene)
+    root.add(data.scene)
+})
+
+/*{
+    const texture_color = texture_loader.load('textures/uv_debug.jpg');
 
     const geometry = new THREE.BoxBufferGeometry(2, 2, 2);
     const material = new THREE.MeshStandardMaterial({
@@ -34,7 +45,7 @@ scene.add(root);
 
     const cube = new THREE.Mesh(geometry, material);
     root.add(cube);
-}
+}*/
 
 {
     const helper = new THREE.AxesHelper(1.3);
