@@ -7,7 +7,8 @@ const main_container = document.getElementById('main_container');
 console.log(main_container.clientWidth, main_container.clientHeight);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, main_container.clientWidth / main_container.clientHeight, 0.1, 1000);
-camera.position.z = 4;
+camera.lookAt(new THREE.Vector3(0, 0, -1));
+camera.position.set(0, 0, 4);
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(main_container.clientWidth, main_container.clientHeight);
@@ -23,33 +24,50 @@ const gltf_loader = new GLTFLoader();
 
 const target = new THREE.Quaternion().set(0, 0, 0, 1);
 
-const root = new THREE.Mesh();
-scene.add(root);
+const camera_rig = new THREE.Object3D()
+camera_rig.add(camera);
+scene.add(camera_rig)
 
+const root = new THREE.Object3D();
+camera_rig.add(root);
 
-gltf_loader.load('cube.glb', (data) => {
-    console.log('loaded cube');
-    console.log(data.scene)
-    root.add(data.scene)
-})
-
-/*{
+{
     const texture_color = texture_loader.load('textures/uv_debug.jpg');
 
-    const geometry = new THREE.BoxBufferGeometry(2, 2, 2);
+    const geometry = new THREE.BoxBufferGeometry(1.95, 1.95, 1.95);
     const material = new THREE.MeshStandardMaterial({
         map: texture_color,
         color: 0xffffff,
+        metalness: 1,
         roughness: .2,
     })
 
-    const cube = new THREE.Mesh(geometry, material);
-    root.add(cube);
-}*/
+    var placeholder = new THREE.Mesh(geometry, material);
+    const helper = new THREE.AxesHelper(1.3);
+    placeholder.add(helper);
+    root.add(placeholder);
+
+    gltf_loader.load('cube.glb', (data) => {
+        console.log('loaded cube');
+        data.scene.rotation.x += Math.PI / 2;
+        root.add(data.scene);
+        placeholder.visible = false;
+    })
+}
 
 {
-    const helper = new THREE.AxesHelper(1.3);
-    root.add(helper);
+    const generator = new THREE.PMREMGenerator(renderer)
+    generator.compileEquirectangularShader();
+
+    texture_loader.load('textures/env_map.jpg', (texture) => {
+        texture.encoding = THREE.sRGBEncoding;
+        const env_map = generator.fromEquirectangular(texture)
+        texture.dispose();
+
+        scene.background =  env_map.texture;
+        placeholder.material.envMap = env_map.texture;
+        placeholder.material.needsUpdate = true;
+    });
 }
 
 {
@@ -106,6 +124,8 @@ const animate = () => {
     var top_current = Date.now();
     var dt = Math.min(1e-3 * (top_current - top_last), 50e-3);
     top_last = top_current;
+
+    camera_rig.rotation.y += .1 * dt;
 
     if (visuals.is_animated) {
         // console.log(root.quaternion)
