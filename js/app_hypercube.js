@@ -1,3 +1,5 @@
+import * as THREE from './three.module.js'
+
 String.prototype.lpad = function(padString, length) {
     var str = this;
     while (str.length < length)
@@ -312,13 +314,13 @@ const notes_mbira = [ // diatonic
     "D2", "A2", "F2", "A2",
 ];
 
-scales = {
+const scales = {
     "penta": notes_penta,
     "diatonic": notes_diatonic,
     "mbira": notes_mbira,
 }
 
-notes = scales["penta"];
+let notes = scales["penta"];
 
 const get_note = (vertex, pitch) => {
     let aa = new Tone.Frequency(notes[vertex]);

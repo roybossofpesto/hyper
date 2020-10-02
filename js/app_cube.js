@@ -1,3 +1,5 @@
+import * as THREE from './three.module.js'
+
 console.log("app started")
 
 const main_container = document.getElementById('main_container');
