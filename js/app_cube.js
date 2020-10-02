@@ -84,7 +84,8 @@ camera_rig.add(root);
 //////////////////////////////////////////////
 
 const visuals = {
-    is_animated: true,
+    main_animated: true,
+    env_animated: true,
 };
 
 const rot_right = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2);
@@ -108,8 +109,8 @@ document.onkeydown = (event) => {
         case 40: // down
             target.multiplyQuaternions(rot_down, target)
             break;
-        case 32:
-            visuals.is_animated = !visuals.is_animated;
+        case 32: // space
+            visuals.env_animated = !visuals.env_animated;
             break;
         default:
             break;
@@ -119,7 +120,8 @@ document.onkeydown = (event) => {
 const main_gui = new dat.GUI();
 
 const visuals_gui = main_gui.addFolder('Visuals');
-visuals_gui.add(visuals, 'is_animated').name('animation&nbsp;[space]').listen();
+visuals_gui.add(visuals, 'env_animated').name('env&nbsp;anim&nbsp;[space]').listen();
+visuals_gui.add(visuals, 'main_animated').name('main anim').listen();
 visuals_gui.add(placeholder, 'visible').name('placeholder').listen();
 
 //////////////////////////////////////////////
@@ -131,13 +133,11 @@ const animate = () => {
     var dt = Math.min(1e-3 * (top_current - top_last), 50e-3);
     top_last = top_current;
 
-    camera_rig.rotation.y += .1 * dt;
+    if (visuals.env_animated)
+        camera_rig.rotation.y += .1 * dt;
 
-    if (visuals.is_animated) {
-        // console.log(root.quaternion)
-        // root.rotation.y += dt;
+    if (visuals.main_animated)
         THREE.Quaternion.slerp(root.quaternion, target, root.quaternion, Math.min(10 * dt, 1));
-    }
 
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
