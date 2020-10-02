@@ -13,18 +13,12 @@ main_container.appendChild(renderer.domElement);
 
 const loader = new THREE.TextureLoader();
 
-
 //////////////////////////////////////////////
 
 const target = new THREE.Quaternion().set(0, 0, 0, 1);
 
-
-let root = new THREE.Mesh();
+const root = new THREE.Mesh();
 scene.add(root);
-
-// const aa = new THREE.Quaternion().set( 1, 0, 0, 0 ).normalize();
-// const bb = new THREE.Quaternion().set( 1, 0, 1, Math.PI / 2 ).normalize();
-
 
 {
     const texture_color = loader.load('uv_debug.jpg');
@@ -36,7 +30,7 @@ scene.add(root);
         roughness: .2,
     })
 
-    var cube = new THREE.Mesh(geometry, material);
+    const cube = new THREE.Mesh(geometry, material);
     root.add(cube);
 }
 
@@ -52,7 +46,7 @@ scene.add(root);
 }
 
 {
-    var light = new THREE.HemisphereLight(0xffffbb, 0x080820, .5);
+    const light = new THREE.HemisphereLight(0xffffbb, 0x080820, .5);
     scene.add(light);
 }
 
@@ -72,16 +66,16 @@ document.onkeydown = (event) => {
     const keyCode = event.which;
     switch (keyCode) {
         case 39: // right
-            target.multiplyQuaternions(rot_right, target)
+            target.multiplyQuaternions(target, rot_right)
             break;
         case 37: // left
-            target.multiplyQuaternions(rot_left, target)
+            target.multiplyQuaternions(target, rot_left)
             break;
         case 38: // up
-            target.multiplyQuaternions(rot_up, target)
+            target.multiplyQuaternions(target, rot_up)
             break;
         case 40: // down
-            target.multiplyQuaternions(rot_down, target)
+            target.multiplyQuaternions(target, rot_down)
             break;
         case 32:
             visuals.is_animated = !visuals.is_animated;
