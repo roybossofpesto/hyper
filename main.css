@@ -1,0 +1,46 @@
+body {
+    margin: 0;
+}
+
+canvas {
+    display: block;
+}
+
+body {
+    background-color: #020202;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+#main_container {
+    width: 500px;
+    height: 500px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+.label {
+    color: white;
+    z-index: 10;
+    position: absolute;
+}
+
+.label a {
+    color: blue;
+}
+
+#links {
+    bottom: 0rem;
+}
+
+#current_point {
+    top: 0rem;
+}
+
+#target_angle {
+    top: 1rem;
+}
