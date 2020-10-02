@@ -49,7 +49,6 @@ camera_rig.add(root);
 
     gltf_loader.load('cube.glb', (data) => {
         console.log('loaded cube');
-        data.scene.rotation.x += Math.PI / 2;
         root.add(data.scene);
         placeholder.visible = false;
     })
