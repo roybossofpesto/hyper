@@ -68,16 +68,16 @@ document.onkeydown = (event) => {
     const keyCode = event.which;
     switch (keyCode) {
         case 39: // right
-            target.multiplyQuaternions(target, rot_right)
+            target.multiplyQuaternions(rot_right, target)
             break;
         case 37: // left
-            target.multiplyQuaternions(target, rot_left)
+            target.multiplyQuaternions(rot_left, target)
             break;
         case 38: // up
-            target.multiplyQuaternions(target, rot_up)
+            target.multiplyQuaternions(rot_up, target)
             break;
         case 40: // down
-            target.multiplyQuaternions(target, rot_down)
+            target.multiplyQuaternions(rot_down, target)
             break;
         case 32:
             visuals.is_animated = !visuals.is_animated;
