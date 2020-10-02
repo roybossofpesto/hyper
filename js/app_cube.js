@@ -116,6 +116,12 @@ document.onkeydown = (event) => {
     }
 }
 
+const main_gui = new dat.GUI();
+
+const visuals_gui = main_gui.addFolder('Visuals');
+visuals_gui.add(visuals, 'is_animated').name('animation&nbsp;[space]').listen();
+visuals_gui.add(placeholder, 'visible').name('placeholder').listen();
+
 //////////////////////////////////////////////
 
 let top_last = Date.now();
