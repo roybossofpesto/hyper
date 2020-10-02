@@ -1,5 +1,7 @@
 import * as THREE from './three.module.js'
-import { GLTFLoader } from './GLTFLoader.js'
+import {
+    GLTFLoader
+} from './GLTFLoader.js'
 
 console.log("app started")
 
@@ -40,6 +42,7 @@ camera_rig.add(root);
         color: 0xffffff,
         metalness: 1,
         roughness: .2,
+        envMapIntensity: 3,
     })
 
     var placeholder = new THREE.Mesh(geometry, material);
@@ -48,30 +51,37 @@ camera_rig.add(root);
     root.add(placeholder);
 
     gltf_loader.load('cube.glb', (data) => {
-        console.log('loaded cube');
-        root.add(data.scene);
+        const cube = data.scene.children[0];
+        cube.material.envMapIntensity = 3;
+        console.log('loaded cube', cube.material);
+        root.add(cube);
         placeholder.visible = false;
+
+
+        {
+            const generator = new THREE.PMREMGenerator(renderer)
+            generator.compileEquirectangularShader();
+
+            texture_loader.load('textures/env_map.jpg', (texture) => {
+                texture.encoding = THREE.sRGBEncoding;
+                const env_map = generator.fromEquirectangular(texture)
+                texture.dispose();
+
+                // scene.background = env_map.texture;
+                placeholder.material.envMap = env_map.texture;
+                placeholder.material.needsUpdate = true;
+                cube.material.envMap = env_map.texture;
+                cube.material.needsUpdate = true;
+            });
+        }
     })
 }
 
-{
-    const generator = new THREE.PMREMGenerator(renderer)
-    generator.compileEquirectangularShader();
 
-    texture_loader.load('textures/env_map.jpg', (texture) => {
-        texture.encoding = THREE.sRGBEncoding;
-        const env_map = generator.fromEquirectangular(texture)
-        texture.dispose();
-
-        scene.background =  env_map.texture;
-        placeholder.material.envMap = env_map.texture;
-        placeholder.material.needsUpdate = true;
-    });
-}
 
 {
     const light = new THREE.PointLight(0xffffff, .2);
-    light.position.set(2, .5, 2);
+    light.position.set(-2, .5, -2);
     scene.add(light);
 }
 
@@ -133,7 +143,7 @@ const animate = () => {
     top_last = top_current;
 
     if (visuals.env_animated)
-        camera_rig.rotation.y += .1 * dt;
+        camera_rig.rotation.y += .3 * dt;
 
     if (visuals.main_animated)
         THREE.Quaternion.slerp(root.quaternion, target, root.quaternion, Math.min(10 * dt, 1));
