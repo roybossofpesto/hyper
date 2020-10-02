@@ -149,7 +149,7 @@ let points = [];
 }
 
 {
-    const texture_normal = loader.load('uv_crackles_normal.png');
+    const texture_normal = loader.load('textures/uv_crackles_normal.png');
 
     {
         texture_normal.wrapS = THREE.RepeatWrapping;
@@ -183,12 +183,12 @@ let points = [];
 {
     // const geometry = new THREE.BoxBufferGeometry(2, .15, .15);
     const geometry = new THREE.CylinderBufferGeometry(.075, .075, 2);
-    const texture_basecolor = loader.load('uv_pattern_line.png');
+    const texture_basecolor = loader.load('textures/uv_pattern_line.png');
     texture_basecolor.wrapS = THREE.RepeatWrapping;
     texture_basecolor.wrapT = THREE.RepeatWrapping;
     texture_basecolor.repeat.set(3, 4);
     texture_basecolor.offset.x = .5;
-    /*const texture_metalness = loader.load('uv_pattern_line_with_arrow_metalness.png');
+    /*const texture_metalness = loader.load('textures/uv_pattern_line_with_arrow_metalness.png');
     texture_metalness.wrapS = THREE.RepeatWrapping;
     texture_metalness.wrapT = THREE.RepeatWrapping;
     texture_metalness.repeat.set(3, 4);
@@ -209,7 +209,7 @@ let points = [];
     const generator = new THREE.PMREMGenerator(renderer)
     generator.compileEquirectangularShader();
 
-    loader.load('env_map.jpg', (texture) => {
+    loader.load('textures/env_map.jpg', (texture) => {
         texture.encoding = THREE.sRGBEncoding;
         const target = generator.fromEquirectangular(texture)
         texture.dispose();

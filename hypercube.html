@@ -32,24 +32,30 @@
             margin: auto;
         }
 
-        #current_position {
+        .label {
             color: white;
             z-index: 10;
             position: absolute;
         }
 
+        .label a {
+            color:red;
+        }
+
         #target_angle {
-            color: white;
-            z-index: 10;
-            position: absolute;
             top: 1rem;
+        }
+
+        #links {
+            bottom: 0rem;
         }
     </style>
 </head>
 
 <body>
-    <div id="current_position">current_position</div>
-    <div id="target_angle">target_angle</div>
+    <div class="label" id="current_position">current_position</div>
+    <div class="label" id="target_angle">target_angle</div>
+    <div class="label" id="links"><a href="cube.html">cube</a> <a href="hypercube.html">hypercube</a></div>
     <div id="main_container"></div>
     <script src="js/three.js"></script>
     <script src="js/dat.gui.min.js"></script>

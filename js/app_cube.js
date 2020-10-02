@@ -21,7 +21,7 @@ const root = new THREE.Mesh();
 scene.add(root);
 
 {
-    const texture_color = loader.load('uv_debug.jpg');
+    const texture_color = loader.load('textures/uv_debug.jpg');
 
     const geometry = new THREE.BoxBufferGeometry(2, 2, 2);
     const material = new THREE.MeshStandardMaterial({

@@ -32,23 +32,25 @@
             margin: auto;
         }
 
-        #coucou {
+        .label {
             color: white;
             z-index: 10;
             position: absolute;
         }
 
-        #prout {
-            color: white;
-            z-index: 10;
-            position: absolute;
-            top: 1rem;
+        .label a {
+            color:red;
+        }
+
+        #links {
+            bottom: 0rem;
         }
     </style>
 </head>
 
 <body>
-    <div id="prout">prout</div>
+    <div class="label">prout</div>
+    <div class="label" id="links"><a href="cube.html">cube</a> <a href="hypercube.html">hypercube</a></div>
     <div id="main_container"></div>
     <script src="js/three.js"></script>
     <script src="js/dat.gui.min.js"></script>
