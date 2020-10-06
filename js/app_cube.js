@@ -50,34 +50,46 @@ camera_rig.add(root);
     placeholder.add(helper);
     root.add(placeholder);
 
-    gltf_loader.load('cube.glb', (data) => {
-        const cube = data.scene.children[0];
-        cube.material.envMapIntensity = 3;
-        console.log('loaded cube', cube.material);
-        root.add(cube);
-        placeholder.visible = false;
+    var dice = new THREE.Group();
+    var cube = new THREE.Group();
+    root.add(dice);
+    root.add(cube);
+    dice.visible = false;
+    {
+        const generator = new THREE.PMREMGenerator(renderer)
+        generator.compileEquirectangularShader();
 
+        texture_loader.load('textures/env_map.jpg', (texture) => {
+            console.log('loaded envmap');
 
-        {
-            const generator = new THREE.PMREMGenerator(renderer)
-            generator.compileEquirectangularShader();
+            texture.encoding = THREE.sRGBEncoding;
+            const env_map = generator.fromEquirectangular(texture)
+            texture.dispose();
 
-            texture_loader.load('textures/env_map.jpg', (texture) => {
-                texture.encoding = THREE.sRGBEncoding;
-                const env_map = generator.fromEquirectangular(texture)
-                texture.dispose();
+            // scene.background = env_map.texture;
+            placeholder.material.envMap = env_map.texture;
+            placeholder.material.needsUpdate = true;
 
-                // scene.background = env_map.texture;
-                placeholder.material.envMap = env_map.texture;
-                placeholder.material.needsUpdate = true;
-                cube.material.envMap = env_map.texture;
-                cube.material.needsUpdate = true;
-            });
-        }
-    })
+            const load_and_add = (group) => (data) => {
+                const mesh = data.scene.children[0];
+                mesh.material.envMapIntensity = 3;
+                console.log('loaded mesh', mesh.material);
+                group.add(mesh);
+
+                mesh.material.envMap = env_map.texture;
+                mesh.material.needsUpdate = true;
+                for (const child of mesh.children)
+                {
+                    child.material.envMap = env_map.texture;
+                    child.material.needsUpdate = true;
+                }
+            };
+
+            gltf_loader.load('dice.glb', load_and_add(dice));
+            gltf_loader.load('cube.glb', load_and_add(cube));
+        });
+    }
 }
-
-
 
 {
     const light = new THREE.PointLight(0xffffff, .2);
@@ -131,7 +143,8 @@ const main_gui = new dat.GUI();
 const visuals_gui = main_gui.addFolder('Visuals');
 visuals_gui.add(visuals, 'env_animated').name('env&nbsp;anim&nbsp;[space]').listen();
 visuals_gui.add(visuals, 'main_animated').name('main anim').listen();
-visuals_gui.add(placeholder, 'visible').name('placeholder').listen();
+visuals_gui.add(dice, 'visible').name('display dice').listen();
+visuals_gui.add(cube, 'visible').name('display cube').listen();
 
 //////////////////////////////////////////////
 
@@ -141,6 +154,10 @@ const animate = () => {
     var top_current = Date.now();
     var dt = Math.min(1e-3 * (top_current - top_last), 50e-3);
     top_last = top_current;
+
+    const dice_loaded_and_visible = dice.children.length > 0 && dice.visible;
+    const cube_loaded_and_visible = cube.children.length > 0 && cube.visible;
+    placeholder.visible = !dice_loaded_and_visible && !cube_loaded_and_visible;
 
     if (visuals.env_animated)
         camera_rig.rotation.y += .3 * dt;
