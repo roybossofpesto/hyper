@@ -114,21 +114,40 @@ const rot_left = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1,
 const rot_up = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
 const rot_down = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
 
+const get_forward_facing = () => {
+    const forward_facing = new THREE.Vector3(0, 0, 1);
+    forward_facing.applyQuaternion(target);
+    return forward_facing;
+};
+
+const update_target = () => {
+    const forward = get_forward_facing();
+    const forward_label = document.getElementById("forward_vector");
+    const target_label = document.getElementById("target_quaternion");
+    forward_label.textContent = `forward (${forward.x.toFixed(3)},${forward.y.toFixed(3)},${forward.z.toFixed(3)})`;
+    target_label.textContent = `target (${target.x.toFixed(3)},${target.y.toFixed(3)},${target.z.toFixed(3)},${target.w.toFixed(3)})`;
+};
+update_target();
+
 document.onkeydown = (event) => {
     console.log('event keydown', event.which);
     const keyCode = event.which;
     switch (keyCode) {
         case 39: // right
             target.multiplyQuaternions(rot_right, target)
+            update_target();
             break;
         case 37: // left
             target.multiplyQuaternions(rot_left, target)
+            update_target();
             break;
         case 38: // up
             target.multiplyQuaternions(rot_up, target)
+            update_target();
             break;
         case 40: // down
             target.multiplyQuaternions(rot_down, target)
+            update_target();
             break;
         case 32: // space
             visuals.env_animated = !visuals.env_animated;

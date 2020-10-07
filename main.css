@@ -44,3 +44,12 @@ body {
 #target_angle {
     top: 1rem;
 }
+
+
+#target_quaternion {
+    top: 1rem;
+}
+
+#forward_vector {
+    top: 0rem;
+}
