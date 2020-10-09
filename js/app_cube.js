@@ -10,10 +10,12 @@ String.prototype.rpad = function(padString, length) {
     return str;
 }
 
+//////////////////////////////////////////////
+
 console.log("app started")
 
 const main_container = document.getElementById('main_container');
-console.log(main_container.clientWidth, main_container.clientHeight);
+console.log("main_container", main_container.clientWidth, main_container.clientHeight);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, main_container.clientWidth / main_container.clientHeight, 0.1, 1000);
 camera.lookAt(new THREE.Vector3(0, 0, -1));
@@ -26,8 +28,6 @@ main_container.appendChild(renderer.domElement);
 
 const texture_loader = new THREE.TextureLoader();
 const gltf_loader = new GLTFLoader();
-
-//////////////////////////////////////////////
 
 //////////////////////////////////////////////
 
@@ -62,6 +62,7 @@ camera_rig.add(root);
     root.add(dice);
     root.add(cube);
     dice.visible = false;
+
     {
         const generator = new THREE.PMREMGenerator(renderer)
         generator.compileEquirectangularShader();
@@ -77,23 +78,22 @@ camera_rig.add(root);
             placeholder.material.envMap = env_map.texture;
             placeholder.material.needsUpdate = true;
 
-            const load_and_add = (group) => (data) => {
+            const load_and_add = (group, name) => (data) => {
                 const mesh = data.scene.children[0];
                 mesh.material.envMapIntensity = 3;
-                console.log('loaded mesh', mesh.material);
+                console.log('loaded mesh', name);
                 group.add(mesh);
 
                 mesh.material.envMap = env_map.texture;
                 mesh.material.needsUpdate = true;
-                for (const child of mesh.children)
-                {
+                for (const child of mesh.children) {
                     child.material.envMap = env_map.texture;
                     child.material.needsUpdate = true;
                 }
             };
 
-            gltf_loader.load('dice.glb', load_and_add(dice));
-            gltf_loader.load('cube.glb', load_and_add(cube));
+            gltf_loader.load('dice.glb', load_and_add(dice, "dice"));
+            gltf_loader.load('cube.glb', load_and_add(cube, "cube"));
         });
     }
 }
@@ -111,6 +111,57 @@ camera_rig.add(root);
 
 //////////////////////////////////////////////
 
+const get_forward_facing = () => {
+    const forward_facing = new THREE.Vector3(0, 0, 1);
+    forward_facing.applyQuaternion(target);
+    return forward_facing;
+};
+
+const get_backward_facing = (qq) => {
+    const forward_facing = new THREE.Vector3(0, 0, 1);
+    const qq_inv = qq.clone();
+    qq_inv.inverse();
+    forward_facing.applyQuaternion(qq_inv);
+    return forward_facing;
+};
+
+const get_direction = (ww) => {
+    const directions = {
+        "I": new THREE.Vector3(0, 0, 1),
+        "II": new THREE.Vector3(0, -1, 0),
+        "III": new THREE.Vector3(1, 0, 0),
+        "IV": new THREE.Vector3(-1, 0, 0),
+        "V": new THREE.Vector3(0, 1, 0),
+        "VI": new THREE.Vector3(0, 0, -1),
+    };
+    for (const [label, vv] of Object.entries(directions)) {
+        const close_enough = ww.distanceTo(vv) < 1e-3;
+        if (close_enough) return label;
+    }
+    return "??";
+};
+
+const get_angle_to_unit = (qq) => {
+    const unit = new THREE.Quaternion();
+    return unit.angleTo(qq);
+}
+
+const update_target = () => {
+    const format_vec3 = (vv) => `(${vv.x.toFixed(3)},${vv.y.toFixed(3)},${vv.z.toFixed(3)})[${vv.length().toFixed(3)}]`;
+    const format_vec4 = (vv) => `(${vv.x.toFixed(3)},${vv.y.toFixed(3)},${vv.z.toFixed(3)},${vv.w.toFixed(3)})[${vv.length().toFixed(3)}]`;
+    const forward_label = document.getElementById("forward_vector");
+    const target_label = document.getElementById("target_quaternion");
+
+    const forward = get_backward_facing(target);
+    const direction = get_direction(forward);
+    const angle = get_angle_to_unit(target) * 180 / Math.PI;
+    forward_label.textContent = `forward ${direction.rpad('_', 4)} ${format_vec3(forward)}`;
+    target_label.textContent = `target ${angle.toFixed(1)}° ${format_vec4(target)}`;
+};
+update_target();
+
+//////////////////////////////////////////////
+
 const visuals = {
     main_animated: true,
     env_animated: true,
@@ -120,51 +171,8 @@ const rot_right = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1
 const rot_left = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
 const rot_up = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
 const rot_down = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
-console.log('rot_right', rot_right);
-console.log('rot_up', rot_up);
-
-const get_forward_facing = () => {
-    const forward_facing = new THREE.Vector3(0, 0, 1);
-    forward_facing.applyQuaternion(target);
-    return forward_facing;
-};
-
-const get_backward_facing = () => {
-    const forward_facing = new THREE.Vector3(0, 0, 1);
-    const target_inv = target.clone();
-    target_inv.inverse();
-    forward_facing.applyQuaternion(target_inv);
-    return forward_facing;
-};
-
-const get_directions = (forward) => {
-    const directions = {
-        "I": new THREE.Vector3(0, 0, 1),
-        "II": new THREE.Vector3(0, -1, 0),
-        "III": new THREE.Vector3(1, 0, 0),
-        "IV": new THREE.Vector3(-1, 0, 0),
-        "V": new THREE.Vector3(0, 1, 0),
-        "VI": new THREE.Vector3(0, 0, -1),
-    };
-    let ret = "";
-    for (const [label, vv] of Object.entries(directions)) {
-        const close_enough = vv.distanceTo(forward) < 1e-3;
-        if (close_enough) ret += label;
-    }
-    return ret;
-};
-
-const update_target = () => {
-    const format_vec3 = (vv) => `(${vv.x.toFixed(3)},${vv.y.toFixed(3)},${vv.z.toFixed(3)})[${vv.length().toFixed(3)}]`;
-    const format_vec4 = (vv) => `(${vv.x.toFixed(3)},${vv.y.toFixed(3)},${vv.z.toFixed(3)},${vv.w.toFixed(3)})[${vv.length().toFixed(3)}]`;
-    const forward = get_backward_facing();
-    const forward_label = document.getElementById("forward_vector");
-    const target_label = document.getElementById("target_quaternion");
-
-    forward_label.textContent = `forward ${get_directions(forward).rpad('_', 4)} ${format_vec3(forward)}`;
-    target_label.textContent = `target ${format_vec4(target)}`;
-};
-update_target();
+const rot_cw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
+const rot_ccw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI / 2);
 
 document.onkeydown = (event) => {
     console.log('event keydown', event.which);
@@ -184,6 +192,14 @@ document.onkeydown = (event) => {
             break;
         case 40: // down
             target.multiplyQuaternions(rot_down, target)
+            update_target();
+            break;
+        case 79: // o
+            target.multiplyQuaternions(rot_cw, target)
+            update_target();
+            break;
+        case 80: // p
+            target.multiplyQuaternions(rot_ccw, target)
             update_target();
             break;
         case 32: // space
