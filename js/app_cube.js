@@ -111,12 +111,6 @@ camera_rig.add(root);
 
 //////////////////////////////////////////////
 
-// const get_forward_front = (qq) => {
-//     const front = new THREE.Vector3(0, 0, 1);
-//     front.applyQuaternion(qq);
-//     return front;
-// };
-
 const get_backward_front = (qq) => {
     const front = new THREE.Vector3(0, 0, 1);
     const qq_inv = qq.clone();
@@ -125,61 +119,68 @@ const get_backward_front = (qq) => {
     return front;
 };
 
+const get_direction = (ww) => {
+    const directions = [
+        new THREE.Vector3(0, 0, 1),
+        new THREE.Vector3(0, -1, 0),
+        new THREE.Vector3(1, 0, 0),
+        new THREE.Vector3(-1, 0, 0),
+        new THREE.Vector3(0, 1, 0),
+        new THREE.Vector3(0, 0, -1),
+    ];
+    for (const [index, vv] of directions.entries()) {
+        const close_enough = ww.distanceTo(vv) < 1e-3;
+        if (close_enough) return index;
+    }
+    return null;
+};
+
+const get_direction_label = (index) => [
+    "I", "II", "III", "IV", "V", "VI",
+][index];
+
 const get_forward_up = (qq, direction) => {
-    const ups = {
-        "I": new THREE.Vector3(0, 1, 0),
-        "II": new THREE.Vector3(0, 0, 1),
-        "III": new THREE.Vector3(0, 1, 0),
-        "IV": new THREE.Vector3(0, 1, 0),
-        "V": new THREE.Vector3(0, 0, -1),
-        "VI": new THREE.Vector3(0, 1, 0),
-    };
+    const ups = [
+        new THREE.Vector3(0, 1, 0),
+        new THREE.Vector3(0, 0, 1),
+        new THREE.Vector3(0, 1, 0),
+        new THREE.Vector3(0, 1, 0),
+        new THREE.Vector3(0, 0, -1),
+        new THREE.Vector3(0, 1, 0),
+    ];
     const up = ups[direction];
     up.applyQuaternion(qq);
     return up;
 };
 
-// const get_backward_up = (qq, direction) => {
-//     const up = new THREE.Vector3(0, 1, 0);
-//     const qq_inv = qq.clone();
-//     qq_inv.inverse();
-//     up.applyQuaternion(qq_inv);
-//     return up;
-// };
-
-const get_direction = (ww) => {
-    const directions = {
-        "I": new THREE.Vector3(0, 0, 1),
-        "II": new THREE.Vector3(0, -1, 0),
-        "III": new THREE.Vector3(1, 0, 0),
-        "IV": new THREE.Vector3(-1, 0, 0),
-        "V": new THREE.Vector3(0, 1, 0),
-        "VI": new THREE.Vector3(0, 0, -1),
-    };
-    for (const [label, vv] of Object.entries(directions)) {
+const get_angle = (ww) => {
+    const ups = [
+        new THREE.Vector3(0, 1, 0),
+        new THREE.Vector3(-1, 0, 0),
+        new THREE.Vector3(0, -1, 0),
+        new THREE.Vector3(1, 0, 0),
+    ]
+    for (const [index, vv] of ups.entries()) {
         const close_enough = ww.distanceTo(vv) < 1e-3;
-        if (close_enough) return label;
+        if (close_enough) return index;
     }
-    return "??";
+    return null;
 };
 
-const get_angle_to_unit = (qq) => {
-    const unit = new THREE.Quaternion();
-    return unit.angleTo(qq);
-}
+const get_angle_label = (index) => "↑←↓→"[index];
 
 const update_target = () => {
     const format_vec3 = (vv) => `(${vv.x.toFixed(3)},${vv.y.toFixed(3)},${vv.z.toFixed(3)})[${vv.length().toFixed(3)}]`;
     const format_vec4 = (vv) => `(${vv.x.toFixed(3)},${vv.y.toFixed(3)},${vv.z.toFixed(3)},${vv.w.toFixed(3)})[${vv.length().toFixed(3)}]`;
-    const state_label = document.getElementById("state_label");
-    const vector_label = document.getElementById("vector_label");
 
     const front = get_backward_front(target);
     const direction = get_direction(front);
     const up = get_forward_up(target, direction);
+    const angle = get_angle(up);
 
-    const angle = get_angle_to_unit(target) * 180 / Math.PI;
-    state_label.textContent = `${direction.rpad('_', 4)} ${angle.toFixed(1)}°`;
+    const state_label = document.getElementById("state_label");
+    const vector_label = document.getElementById("vector_label");
+    state_label.textContent = `${get_angle_label(angle)}${get_direction_label(direction)}`;
     vector_label.innerHTML = `target ${format_vec4(target)}<br/>front ${format_vec3(front)}<br/>up ${format_vec3(up)}`;
 };
 update_target();
