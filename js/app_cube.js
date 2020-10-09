@@ -3,6 +3,13 @@ import {
     GLTFLoader
 } from './GLTFLoader.js'
 
+String.prototype.rpad = function(padString, length) {
+    let str = this;
+    while (str.length < length)
+        str += padString;
+    return str;
+}
+
 console.log("app started")
 
 const main_container = document.getElementById('main_container');
@@ -46,7 +53,7 @@ camera_rig.add(root);
     })
 
     var placeholder = new THREE.Mesh(geometry, material);
-    const helper = new THREE.AxesHelper(1.3);
+    const helper = new THREE.AxesHelper(2);
     placeholder.add(helper);
     root.add(placeholder);
 
@@ -113,6 +120,8 @@ const rot_right = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1
 const rot_left = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
 const rot_up = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
 const rot_down = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+console.log('rot_right', rot_right);
+console.log('rot_up', rot_up);
 
 const get_forward_facing = () => {
     const forward_facing = new THREE.Vector3(0, 0, 1);
@@ -120,12 +129,40 @@ const get_forward_facing = () => {
     return forward_facing;
 };
 
+const get_backward_facing = () => {
+    const forward_facing = new THREE.Vector3(0, 0, 1);
+    const target_inv = target.clone();
+    target_inv.inverse();
+    forward_facing.applyQuaternion(target_inv);
+    return forward_facing;
+};
+
+const get_directions = (forward) => {
+    const directions = {
+        "I": new THREE.Vector3(0, 0, 1),
+        "II": new THREE.Vector3(0, -1, 0),
+        "III": new THREE.Vector3(1, 0, 0),
+        "IV": new THREE.Vector3(-1, 0, 0),
+        "V": new THREE.Vector3(0, 1, 0),
+        "VI": new THREE.Vector3(0, 0, -1),
+    };
+    let ret = "";
+    for (const [label, vv] of Object.entries(directions)) {
+        const close_enough = vv.distanceTo(forward) < 1e-3;
+        if (close_enough) ret += label;
+    }
+    return ret;
+};
+
 const update_target = () => {
-    const forward = get_forward_facing();
+    const format_vec3 = (vv) => `(${vv.x.toFixed(3)},${vv.y.toFixed(3)},${vv.z.toFixed(3)})[${vv.length().toFixed(3)}]`;
+    const format_vec4 = (vv) => `(${vv.x.toFixed(3)},${vv.y.toFixed(3)},${vv.z.toFixed(3)},${vv.w.toFixed(3)})[${vv.length().toFixed(3)}]`;
+    const forward = get_backward_facing();
     const forward_label = document.getElementById("forward_vector");
     const target_label = document.getElementById("target_quaternion");
-    forward_label.textContent = `forward (${forward.x.toFixed(3)},${forward.y.toFixed(3)},${forward.z.toFixed(3)})`;
-    target_label.textContent = `target (${target.x.toFixed(3)},${target.y.toFixed(3)},${target.z.toFixed(3)},${target.w.toFixed(3)})`;
+
+    forward_label.textContent = `forward ${get_directions(forward).rpad('_', 4)} ${format_vec3(forward)}`;
+    target_label.textContent = `target ${format_vec4(target)}`;
 };
 update_target();
 
