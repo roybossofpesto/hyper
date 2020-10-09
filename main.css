@@ -46,10 +46,10 @@ body {
 }
 
 
-#target_quaternion {
+#vector_label {
     top: 1rem;
 }
 
-#forward_vector {
+#state_label {
     top: 0rem;
 }

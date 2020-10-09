@@ -111,19 +111,41 @@ camera_rig.add(root);
 
 //////////////////////////////////////////////
 
-const get_forward_facing = () => {
-    const forward_facing = new THREE.Vector3(0, 0, 1);
-    forward_facing.applyQuaternion(target);
-    return forward_facing;
-};
+// const get_forward_front = (qq) => {
+//     const front = new THREE.Vector3(0, 0, 1);
+//     front.applyQuaternion(qq);
+//     return front;
+// };
 
-const get_backward_facing = (qq) => {
-    const forward_facing = new THREE.Vector3(0, 0, 1);
+const get_backward_front = (qq) => {
+    const front = new THREE.Vector3(0, 0, 1);
     const qq_inv = qq.clone();
     qq_inv.inverse();
-    forward_facing.applyQuaternion(qq_inv);
-    return forward_facing;
+    front.applyQuaternion(qq_inv);
+    return front;
 };
+
+const get_forward_up = (qq, direction) => {
+    const ups = {
+        "I": new THREE.Vector3(0, 1, 0),
+        "II": new THREE.Vector3(0, 0, 1),
+        "III": new THREE.Vector3(0, 1, 0),
+        "IV": new THREE.Vector3(0, 1, 0),
+        "V": new THREE.Vector3(0, 0, -1),
+        "VI": new THREE.Vector3(0, 1, 0),
+    };
+    const up = ups[direction];
+    up.applyQuaternion(qq);
+    return up;
+};
+
+// const get_backward_up = (qq, direction) => {
+//     const up = new THREE.Vector3(0, 1, 0);
+//     const qq_inv = qq.clone();
+//     qq_inv.inverse();
+//     up.applyQuaternion(qq_inv);
+//     return up;
+// };
 
 const get_direction = (ww) => {
     const directions = {
@@ -149,14 +171,16 @@ const get_angle_to_unit = (qq) => {
 const update_target = () => {
     const format_vec3 = (vv) => `(${vv.x.toFixed(3)},${vv.y.toFixed(3)},${vv.z.toFixed(3)})[${vv.length().toFixed(3)}]`;
     const format_vec4 = (vv) => `(${vv.x.toFixed(3)},${vv.y.toFixed(3)},${vv.z.toFixed(3)},${vv.w.toFixed(3)})[${vv.length().toFixed(3)}]`;
-    const forward_label = document.getElementById("forward_vector");
-    const target_label = document.getElementById("target_quaternion");
+    const state_label = document.getElementById("state_label");
+    const vector_label = document.getElementById("vector_label");
 
-    const forward = get_backward_facing(target);
-    const direction = get_direction(forward);
+    const front = get_backward_front(target);
+    const direction = get_direction(front);
+    const up = get_forward_up(target, direction);
+
     const angle = get_angle_to_unit(target) * 180 / Math.PI;
-    forward_label.textContent = `forward ${direction.rpad('_', 4)} ${format_vec3(forward)}`;
-    target_label.textContent = `target ${angle.toFixed(1)}° ${format_vec4(target)}`;
+    state_label.textContent = `${direction.rpad('_', 4)} ${angle.toFixed(1)}°`;
+    vector_label.innerHTML = `target ${format_vec4(target)}<br/>front ${format_vec3(front)}<br/>up ${format_vec3(up)}`;
 };
 update_target();
 
