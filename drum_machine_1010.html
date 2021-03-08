@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>hypercube</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        body {
+            background-color: #020202;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        #main_container {
+            width: 500px;
+            height: 500px;
+
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+
+            margin: auto;
+        }
+
+        #coucou {
+            color: white;
+            z-index: 10;
+            position: absolute;
+        }
+
+        #prout {
+            color: white;
+            z-index: 10;
+            position: absolute;
+            top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="prout">prout</div>
+    <div id="main_container"></div>
+    <script src="js/three.js"></script>
+    <script src="js/dat.gui.min.js"></script>
+    <script src="js/Tone.js"></script>
+    <script src="js/app_drum.js"></script>
+</body>
+
+</html>
