@@ -5,6 +5,16 @@ class Pattern {
         this.result = document.createElement("div");
         this.result.classList.add("result");
         this.result.appendChild(document.createTextNode(`foo`));
+        this.result.onclick = (event) => {
+            let accum = "";
+            for (let kk=0; kk<this.elems.length; kk++) {
+                let elem = this.elems[kk];
+                const is_active = elem.classList.contains("active");
+                const value = is_active ? "X" : "_";
+                accum += value;
+            }
+            console.log('play', accum);
+        };
         container.appendChild(this.result);
 
         this.elems = [];
@@ -36,7 +46,7 @@ class Pattern {
     displayHexa() {
         const value = this.getValue();
         const value_fmt = value.toString(16).padStart(4, '0');
-        console.log("value_fmt", value_fmt);
+        console.log("displayHexa", value_fmt);
         this.result.textContent = value_fmt;
     }
 
