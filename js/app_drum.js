@@ -30,9 +30,14 @@ class Pattern {
 
         this.pattern = new Tone.Pattern((time, elem) => {
             const is_active = elem.classList.contains("active");
-            console.log("pattern", time, elem, is_active, note);
-            if (is_active)
-                sampler.triggerAttack(note, time);  // Tone.Frequency(sector.note).transpose(transpose), "16n", time);
+            const freq = Tone.Frequency(note);
+            if (is_active) sampler.triggerAttack(freq, time);
+            Tone.Draw.schedule(() => {
+                elem.classList.add("current");
+                setTimeout(() => {
+                    elem.classList.remove("current");
+                }, 100)
+            }, time);
 
         }, this.elems);
         this.pattern.interval = '16n';
@@ -97,5 +102,4 @@ transport_container.getElementsByClassName("stop").item(0).onclick = (event) => 
     console.log("transport stop");
 }
 // Tone.context.lookAhead = 0;
-// Tone.start();
-//
+Tone.Transport.bpm.value = 120;
