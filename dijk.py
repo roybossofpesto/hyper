@@ -117,13 +117,20 @@ def count_random_paths(xx, yy, seed, max_paths):
         #print("REACHED SOLUTION")
     return [(path, count_paths[path_hash]) for path_hash, path in seen_paths.items()], count_failure
 
-total = 40
-seed = 42
-paths, failure = count_random_paths(5, 7, seed, total)
-print("seed {2} / {0} try / {1:.1f}% failure rate".format(total, 100 * failure / total, seed))
+import argparse
+parser = argparse.ArgumentParser(description='Shortest paths.')
+parser.add_argument('xx', metavar="X", type=int, help="start")
+parser.add_argument('yy', metavar="Y", type=int, help="finish")
+parser.add_argument('--num-try', dest='total', type=int, default=1024, help="number of random paths")
+parser.add_argument('--seed', dest='seed', type=int, default=42, help="rng seed")
+args = parser.parse_args()
+print("seed {0} / {1} try".format(args.seed, args.total))
+
+paths, failure = count_random_paths(args.xx, args.yy, args.seed, args.total)
+print("{0:.1f}% failure rate".format(100 * failure / args.total))
 print("found {0} shortest paths".format(len(paths)))
 for path, count in paths:
-    print("========== {0} {1:.1f}%".format(count, 100 * count / total))
+    print("========== {0} {1:.1f}%".format(count, 100 * count / args.total))
     for kk, step in enumerate(path):
         print(kk, binary(step))
 
