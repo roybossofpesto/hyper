@@ -88,8 +88,8 @@ const aa = new Patterns(main_container);
 // const bb = new Patterns(main_container);
 
 const transport_container = document.getElementById("transport_container");
-transport_container.getElementsByClassName("play").item(0).onclick = (event) => {
-    Tone.start();
+transport_container.getElementsByClassName("play").item(0).onclick = async (event) => {
+    await Tone.start();
     Tone.Transport.start();
     console.log("transport start");
 }
