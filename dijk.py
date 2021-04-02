@@ -2,9 +2,14 @@
 # coding: utf-8
 
 import copy
+import heapq
+import random
+import hashlib
 
 def binary(xx):
-    return "{0:08b}".format(xx % 256)
+    return "{0:08b}".format(xx)
+
+assert binary(127 + 256 - 5) == "101111010"
 
 def compare(xx, yy):
     xx_fmt = binary(xx)
@@ -60,8 +65,65 @@ def generate_nexts(xx):
         cc |= ww_prev
         yield cc
 
-xx = 5
-print(binary(xx))
-for xx_ in generate_nexts(xx):
-    print(binary(xx), "->", binary(xx_))
+def shortest_path(xx, yy):
+    queue = []
+    heapq.heappush(queue, (0., xx, None))
+
+    ancestors = {}
+
+    while queue:
+        dist, current_value, ancestor_value = heapq.heappop(queue)
+        found = current_value in ancestors
+        if found:
+            continue
+        ancestors[current_value] = ancestor_value
+        #print("**", dist, binary(current_value), current_value, found, len(ancestors))
+        if current_value == yy:
+            current = copy.copy(yy)
+            path = [current]
+            while current in ancestors and ancestors[current] is not None:
+                current = ancestors[current]
+                path.append(current)
+            path.reverse()
+            return path
+        for next_value in generate_nexts(current_value):
+            #print(binary(current_value), "->", binary(next_value))
+            heapq.heappush(queue, (dist + random.uniform(0.8, 1.2), next_value, current_value))
+
+    return None
+
+
+def count_random_paths(xx, yy, seed, max_paths):
+    print("shortest paths", binary(xx), "->", binary(yy))
+    random.seed(seed)
+    seen_paths = {}
+    count_paths = {}
+    count_failure = 0
+    for path in range(max_paths):
+        path = shortest_path(xx, yy)
+        if path is None:
+            #print(count_path, "NO PATH")
+            count_failure += 1
+            continue
+        path = tuple(path)
+        path_hash = hash(path)
+        if path_hash in seen_paths:
+            #print("DUPLICATE SOLUTION")
+            assert path_hash in count_paths
+            count_paths[path_hash] += 1
+            continue
+        seen_paths[path_hash] = path
+        count_paths[path_hash] = 1
+        #print("REACHED SOLUTION")
+    return [(path, count_paths[path_hash]) for path_hash, path in seen_paths.items()], count_failure
+
+total = 40
+seed = 42
+paths, failure = count_random_paths(5, 7, seed, total)
+print("seed {2} / {0} try / {1:.1f}% failure rate".format(total, 100 * failure / total, seed))
+print("found {0} shortest paths".format(len(paths)))
+for path, count in paths:
+    print("========== {0} {1:.1f}%".format(count, 100 * count / total))
+    for kk, step in enumerate(path):
+        print(kk, binary(step))
 
