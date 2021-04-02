@@ -89,6 +89,7 @@ const aa = new Patterns(main_container);
 
 const transport_container = document.getElementById("transport_container");
 transport_container.getElementsByClassName("play").item(0).onclick = (event) => {
+    Tone.start();
     Tone.Transport.start();
     console.log("transport start");
 }
