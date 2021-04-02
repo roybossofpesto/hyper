@@ -2,3 +2,4 @@
 *.png
 *.py
 *.blend1
+!dijk.py
