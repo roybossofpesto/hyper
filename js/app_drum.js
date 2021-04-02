@@ -42,25 +42,7 @@ class Pattern {
         container.appendChild(this.result);
         this.displayHexa();
 
-        this.result.onclick = (event) => {
-            let accum = "";
-            for (let kk=0; kk<this.elems.length; kk++) {
-                let elem = this.elems[kk];
-                const is_active = elem.classList.contains("active");
-                const value = is_active ? "X" : "_";
-                accum += value;
-            }
-            console.log('play', accum, sampler_loaded);
-            if (!sampler_loaded)
-                return;
-
-            Tone.context.lookAhead = 0;
-            Tone.start();
-
-            Tone.Transport.bpm.value = 120;
-            Tone.Transport.start();
-            this.pattern.start(0);
-        };
+        this.pattern.start(0);
     }
 
     getValue() {
@@ -98,4 +80,22 @@ class Patterns {
 
 const main_container = document.getElementById('main_container');
 const aa = new Patterns(main_container);
-const bb = new Patterns(main_container);
+// const bb = new Patterns(main_container);
+
+const transport_container = document.getElementById("transport_container");
+transport_container.getElementsByClassName("play").item(0).onclick = (event) => {
+    Tone.Transport.start();
+    console.log("transport start");
+}
+transport_container.getElementsByClassName("pause").item(0).onclick = (event) => {
+    Tone.Transport.pause();
+    console.log("transport pause");
+
+}
+transport_container.getElementsByClassName("stop").item(0).onclick = (event) => {
+    Tone.Transport.stop();
+    console.log("transport stop");
+}
+// Tone.context.lookAhead = 0;
+// Tone.start();
+//
