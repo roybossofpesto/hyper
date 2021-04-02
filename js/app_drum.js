@@ -10,10 +10,10 @@ let sampler = new Tone.Sampler({
     sampler_loaded = true;
 }).toDestination();
 
-
-
 class Pattern {
-    constructor(container, note) {
+    constructor(container, note, label) {
+        this.label = label;
+
         this.elems = [];
         for (let kk=0; kk<16; kk++) {
             const elem = document.createElement("div");
@@ -39,7 +39,9 @@ class Pattern {
 
         this.result = document.createElement("div");
         this.result.classList.add("result");
-        this.result.appendChild(document.createTextNode(`foo`));
+        container.appendChild(this.result);
+        this.displayHexa();
+
         this.result.onclick = (event) => {
             let accum = "";
             for (let kk=0; kk<this.elems.length; kk++) {
@@ -59,7 +61,6 @@ class Pattern {
             Tone.Transport.start();
             this.pattern.start(0);
         };
-        container.appendChild(this.result);
     }
 
     getValue() {
@@ -75,16 +76,26 @@ class Pattern {
 
     displayHexa() {
         const value = this.getValue();
-        const value_fmt = value.toString(16).padStart(4, '0');
-        console.log("displayHexa", value_fmt);
+        const value_fmt = `${this.label}-${value.toString(16).padStart(4, '0')}`;
+        // console.log("displayHexa", value_fmt);
         this.result.textContent = value_fmt;
     }
+}
 
+class Patterns {
+    constructor(container) {
+        const elem = document.createElement("div");
+        elem.classList.add("patterns_container");
+        container.appendChild(elem);
+
+        this.patterns = [];
+        this.patterns.push(new Pattern(elem, "F3", "h"));
+        this.patterns.push(new Pattern(elem, "D3", "s"));
+        this.patterns.push(new Pattern(elem, "E3", "t"));
+        this.patterns.push(new Pattern(elem, "C3", "k"));
+    }
 }
 
 const main_container = document.getElementById('main_container');
-console.log(main_container.clientWidth, main_container.clientHeight);
-
-const pattern0 = new Pattern(main_container, "F3");
-const pattern1 = new Pattern(main_container, "D3");
-const pattern2 = new Pattern(main_container, "E3");
+const aa = new Patterns(main_container);
+const bb = new Patterns(main_container);
