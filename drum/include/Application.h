@@ -10,6 +10,7 @@ struct GLFWwindow;
 
 struct Data {
     bool display_options = true;
+    bool display_patterns = true;
     bool display_demo = true;
     glm::vec3 background_color {1, 0, 0};
 };

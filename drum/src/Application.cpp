@@ -23,6 +23,7 @@
 constexpr float ui_font_base_size = 17;
 constexpr float ui_window_spacing = 5;
 constexpr float ui_main_menu_height = 24;
+constexpr float ui_window_width = 330;
 
 Application::Application(const Size width_window, const Size height_window) {
     using Clock = std::chrono::high_resolution_clock;
@@ -355,6 +356,7 @@ void Application::runImGui() {
 
         if (ImGui::BeginMenu("Panels")) {
             ImGui::MenuItem("Options", nullptr, &data.display_options);
+            ImGui::MenuItem("Patterns", nullptr, &data.display_patterns);
             ImGui::MenuItem("Demo", nullptr, &data.display_demo);
             // ImGui::Separator();
             // ImGui::MenuItemWithShortcut("Toggle options", GLFW_KEY_F2);
@@ -366,12 +368,12 @@ void Application::runImGui() {
         ImGui::EndMainMenuBar();
     }
 
-    float top_offset = ui_window_spacing + ui_main_menu_height;
+    const float top_offset = ui_window_spacing + ui_main_menu_height;
 
     if (data.display_options) {
         const auto cond = ImGuiCond_Appearing;
-        ImGui::SetNextWindowPos(ImVec2(5, top_offset ), cond);
-        ImGui::SetNextWindowSize(ImVec2(300, -1), cond);
+        ImGui::SetNextWindowPos(ImVec2(ui_window_spacing, top_offset + ui_window_spacing), cond);
+        ImGui::SetNextWindowSize(ImVec2(ui_window_width, -1), cond);
         ImGui::Begin("options", &data.display_options, 0);
 
         {
@@ -394,6 +396,19 @@ void Application::runImGui() {
         ImGui::End();
     }
 
+    if (data.display_patterns) {
+        const auto cond = ImGuiCond_Appearing;
+        ImGui::SetNextWindowPos(ImVec2(ui_window_spacing + ui_window_width + ui_window_spacing, top_offset + ui_window_spacing), cond);
+        ImGui::SetNextWindowSize(ImVec2(ui_window_width, -1), cond);
+        ImGui::Begin("patterns", &data.display_options, 0);
+
+        if (ImGui::Button("coucou")) {
+            spdlog::critical("coucou");
+        }
+
+        ImGui::End();
+    }
+
     if (data.display_demo)
         ImGui::ShowDemoWindow(&data.display_demo);
 }
@@ -403,7 +418,6 @@ void Application::runScene(const float& dt) {
         return;
 
     const auto aspect_ratio = static_cast<float>(width_window_) / height_window_;
-
 
     glBindVertexArray(vao_);
     glClearColor(
