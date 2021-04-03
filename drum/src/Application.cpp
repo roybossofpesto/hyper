@@ -26,6 +26,49 @@ constexpr float ui_window_spacing = 5;
 constexpr float ui_main_menu_height = 24;
 constexpr float ui_window_width = 330;
 
+namespace ImGui {
+    bool BitFlipper(int* value_raw, const int kk, const ImVec2 button_size = {30, 30});
+}
+
+bool ImGui::BitFlipper(int* value_raw, const int kk, const ImVec2 button_size) {
+    assert(value_raw);
+    unsigned int value = static_cast<unsigned int>(*value_raw);
+
+    const unsigned int mask = 1 << kk;
+    const bool is_bit_on = (value & mask) != 0;
+    const std::string label = fmt::format("{0:x}", kk);
+
+    static const std::array<ImVec4, 4> off_colors ={
+        ImVec4{0., 0., 0., 1.},
+        ImVec4{.05, .05, .05, 1.},
+        ImVec4{.1, .1, .1, 1.},
+        ImVec4{1., 1., 1., 1.},
+    };
+
+    static const std::array<ImVec4, 4> on_colors ={
+        ImVec4{1., 1., 1., 1.},
+        ImVec4{.95, .95, .95, 1.},
+        ImVec4{.9, .9, .9, 1.},
+        ImVec4{0., 0., 0., 1.},
+    };
+
+    const auto& colors = is_bit_on ? on_colors : off_colors;
+
+    ImGui::PushID(kk);
+    ImGui::PushStyleColor(ImGuiCol_Button, std::get<0>(colors));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, std::get<1>(colors));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, std::get<2>(colors));
+    ImGui::PushStyleColor(ImGuiCol_Text, std::get<3>(colors));
+    const bool updated = ImGui::Button(label.c_str(), button_size);
+    ImGui::PopStyleColor(4);
+    ImGui::PopID();
+
+    if (updated) value ^= mask;
+    *value_raw = static_cast<int>(value);
+
+    return updated;
+}
+
 Application::Application(const Size width_window, const Size height_window) {
     using Clock = std::chrono::high_resolution_clock;
     using Top = Clock::time_point;
@@ -403,39 +446,19 @@ void Application::runImGui() {
         ImGui::SetNextWindowSize(ImVec2(ui_window_width, -1), cond);
         ImGui::Begin("patterns", &data.display_patterns, 0);
 
-        const ImVec2 button_size {40, 40};
+        ImGui::SliderInt("pattern", &data.pattern_length, 2, 8);
+        data.pattern_length = std::max(data.pattern_length, 1);
+        data.pattern_length = std::min(data.pattern_length, 16);
 
-        for (int kk=0; kk<4; kk++) {
+        ImGui::InputInt("input", &data.input_value);
+        data.input_value %= 1 << data.pattern_length;
+
+        for (int kk=0; kk<data.pattern_length; kk++) {
             if (kk) ImGui::SameLine();
-            const std::string label = fmt::format("[{0:02d}]", kk);
-
-            const std::array<ImVec4, 4> off_colors ={
-                ImVec4{0., 0., 0., 1.},
-                ImVec4{.05, .05, .05, 1.},
-                ImVec4{.1, .1, .1, 1.},
-                ImVec4{1., 1., 1., 1.},
-            };
-
-            const std::array<ImVec4, 4> on_colors ={
-                ImVec4{1., 1., 1., 1.},
-                ImVec4{.95, .95, .95, 1.},
-                ImVec4{.9, .9, .9, 1.},
-                ImVec4{0., 0., 0., 1.},
-            };
-
-            const auto& colors = kk % 2 != 0 ? on_colors : off_colors;
-
-            ImGui::PushID(kk);
-            ImGui::PushStyleColor(ImGuiCol_Button, std::get<0>(colors));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, std::get<1>(colors));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, std::get<2>(colors));
-            ImGui::PushStyleColor(ImGuiCol_Text, std::get<3>(colors));
-            // ImGui::PushStyleColor(ImGuiCol_Text,, (ImVec4)ImColor::HSV(i/7.0f, c, c));
-            if (ImGui::Button(label.c_str(), button_size)) {
-                spdlog::critical("coucou");
+            const int kk_ = data.pattern_length - 1 - kk;
+            if (ImGui::BitFlipper(&data.input_value, kk_)) {
+                spdlog::critical("mdr {0} {1:0{0}b}", data.pattern_length, data.input_value);
             }
-            ImGui::PopStyleColor(4);
-            ImGui::PopID();
         }
 
         ImGui::End();
