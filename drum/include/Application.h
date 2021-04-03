@@ -11,9 +11,10 @@ struct GLFWwindow;
 struct Data {
     bool display_options = true;
     bool display_patterns = true;
-    bool display_demo = true;
+    bool display_demo = false;
     glm::vec3 background_color {1, 0, 0};
     int input_value = 0b10110111;
+    int output_value = 0b00101001;
     int pattern_length = 4;
 };
 
