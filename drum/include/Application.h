@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 #include <cstdint>
+#include <random>
 
 struct GLFWwindow;
 
@@ -16,6 +17,7 @@ struct Data {
     int input_value = 0b10110111;
     int output_value = 0b00101001;
     int pattern_length = 4;
+    std::mt19937_64 rng {42};
 };
 
 class Application {

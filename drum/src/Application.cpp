@@ -467,6 +467,18 @@ void Application::runImGui() {
 
         ImGui::Separator();
 
+        if (ImGui::Button("rand input")) {
+            std::uniform_int_distribution<int> dist(0, 1 << data.pattern_length - 1);
+            data.input_value = dist(data.rng);
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("rand output")) {
+            std::uniform_int_distribution<int> dist(0, 1 << data.pattern_length - 1);
+            data.output_value = dist(data.rng);
+        }
+
         ImGui::InputInt("input", &data.input_value);
         data.input_value %= 1 << data.pattern_length;
         ImGui::InputInt("output", &data.output_value);
