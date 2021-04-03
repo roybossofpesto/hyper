@@ -21,6 +21,8 @@
 #include <chrono>
 
 constexpr float ui_font_base_size = 17;
+constexpr float ui_window_spacing = 5;
+constexpr float ui_main_menu_height = 24;
 
 Application::Application(const Size width_window, const Size height_window) {
     using Clock = std::chrono::high_resolution_clock;
@@ -334,9 +336,41 @@ void Application::destroy() {
 }
 
 void Application::runImGui() {
+    if (ImGui::BeginMainMenuBar()) {
+        /*if (ImGui::BeginMenu("File")) {
+            ImGui::MenuItemWithShortcut("Save..", GLFW_KEY_S, ImGuiKeyModFlags_Ctrl);
+            ImGui::MenuItemWithShortcut("Open..", GLFW_KEY_O, ImGuiKeyModFlags_Ctrl);
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Shader")) {
+            ImGui::MenuItemWithShortcut("Update", GLFW_KEY_F5);
+            ImGui::MenuItemWithShortcut("Reset", GLFW_KEY_F6);
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::PresetsMenu(text_editor))
+            triggers.should_parse = true;
+        */
+
+        if (ImGui::BeginMenu("Panels")) {
+            ImGui::MenuItem("Options", nullptr, &data.display_options);
+            ImGui::MenuItem("Demo", nullptr, &data.display_demo);
+            // ImGui::Separator();
+            // ImGui::MenuItemWithShortcut("Toggle options", GLFW_KEY_F2);
+            // ImGui::MenuItemWithShortcut("Toggle specific panels", GLFW_KEY_F3);
+            // ImGui::MenuItemWithShortcut("Toggle canvas", GLFW_KEY_F4);
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+
+    float top_offset = ui_window_spacing + ui_main_menu_height;
+
     if (data.display_options) {
         const auto cond = ImGuiCond_Appearing;
-        ImGui::SetNextWindowPos(ImVec2(5, 5), cond);
+        ImGui::SetNextWindowPos(ImVec2(5, top_offset ), cond);
         ImGui::SetNextWindowSize(ImVec2(300, -1), cond);
         ImGui::Begin("options", &data.display_options, 0);
 
