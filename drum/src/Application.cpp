@@ -41,8 +41,9 @@ Application::Application(const Size width_window, const Size height_window) {
       ImGui::NewFrame();
       runImGui();
       ImGui::Render();
-      
-      // pImpl_->RunScene(dt);
+
+      runScene(dt);
+
       endFrame();
 
       last_top = top;
@@ -52,7 +53,7 @@ Application::Application(const Size width_window, const Size height_window) {
 }
 
 Application::ErrorCode Application::getErrorCode() const {
-  return error_code_;
+    return error_code_;
 }
 
 bool Application::initialize(const Size width, const Size height) {
@@ -98,6 +99,100 @@ bool Application::initialize(const Size width, const Size height) {
 
         if (!checkOpenGLError()) return false;
     }
+
+    { // register callbacks
+        spdlog::info("register glfw callbacks");
+
+        glfwSetErrorCallback(
+            [](int error, const char* msg) {
+            spdlog::error("GLFW Error {}: {}", error, msg);
+        });
+
+        glfwSetMouseButtonCallback(window_, [](GLFWwindow* window, int32_t button, int32_t action, int32_t) {
+            auto& io = ImGui::GetIO();
+
+            if (io.WantCaptureMouse) return;
+
+            auto self = static_cast<Application*>(glfwGetWindowUserPointer(window));
+            assert(self);
+
+            double position_x = 0.0;
+            double position_y = 0.0;
+            glfwGetCursorPos(window, &position_x, &position_y);
+            self->last_mouse_position_ = glm::vec2(position_x, position_y);
+
+            auto fill_button = [&](MouseButton button) {
+                if (action == GLFW_PRESS) self->mouse_pressed_ |= static_cast<MouseButtons>(button);
+                if (action == GLFW_RELEASE) self->mouse_pressed_ &= ~static_cast<MouseButtons>(button);
+            };
+
+            switch (button) {
+                case GLFW_MOUSE_BUTTON_LEFT:
+                    fill_button(MouseButton::LeftButon);
+                    break;
+                case GLFW_MOUSE_BUTTON_MIDDLE:
+                    fill_button(MouseButton::MiddleButton);
+                    break;
+                case GLFW_MOUSE_BUTTON_RIGHT:
+                    fill_button(MouseButton::RightButton);
+                    break;
+            }
+        });
+
+        /*glfwSetCursorPosCallback(window_, [](GLFWwindow* window, double x, double y) {
+                Application::pImpl* pImpl_ =
+                static_cast<Application::pImpl*>(glfwGetWindowUserPointer(window));
+                assert(pImpl_);
+
+                auto& last_mouse_position = pImpl_->last_mouse_position_;
+                auto& quaternion = pImpl_->data.camera.quaternion_target;
+
+                if (pImpl_->mouse_pressed_ & static_cast<MouseButtons>(MouseButton::LeftButon)) {
+                const glm::vec2 delta = glm::vec2(x - last_mouse_position.x, y - last_mouse_position.y);
+                spdlog::trace("delta {},{}", delta.x, delta.y);
+
+                const glm::quat dqx = glm::angleAxis(delta.x * 1e-2f, glm::vec3(0, 1, 0));
+                const glm::quat dqy = glm::angleAxis(delta.y * 1e-2f, glm::vec3(1, 0, 0));
+                spdlog::trace("dqx {},{},{},{}", dqx.x, dqx.y, dqx.z, dqx.w);
+                spdlog::trace("dqy {},{},{},{}", dqy.x, dqy.y, dqy.z, dqy.w);
+
+                quaternion = dqx * dqy * quaternion;
+                spdlog::trace("quaternion_target {},{},{},{}",
+                        quaternion.x,
+                        quaternion.y,
+                        quaternion.z,
+                        quaternion.w);
+
+                last_mouse_position = glm::vec2(x, y);
+                }
+        });
+
+        glfwSetScrollCallback(
+                window_, [](GLFWwindow* window, double, double y_offset) {
+                if (ImGui::GetIO().WantCaptureMouse)
+                return;
+
+                Application::pImpl* pImpl_ =
+                static_cast<Application::pImpl*>(glfwGetWindowUserPointer(window));
+                assert(pImpl_);
+                constexpr float sensibility = 0.2f;
+                pImpl_->data.camera.distance_to_origin -=
+                sensibility*static_cast<float>(y_offset);
+                pImpl_->data.camera.distance_to_origin =
+                std::clamp(pImpl_->data.camera.distance_to_origin, 1.8f, 12.f);
+            });*/
+
+        glfwSetWindowSizeCallback(window_, [](GLFWwindow* window, int width, int height) {
+            spdlog::critical("resize {} {}", width, height);
+            auto self = static_cast<Application*>(glfwGetWindowUserPointer(window));
+            assert(self);
+
+            self->width_window_ = width;
+            self->height_window_ = height;
+            glfwGetFramebufferSize(self->window_, &self->width_framebuffer_, &self->height_framebuffer_);
+        });
+    }
+
 
     { // init imgui
         spdlog::info("init imgui");
@@ -235,5 +330,26 @@ void Application::destroy() {
 }
 
 void Application::runImGui() {
+    ImGui::Begin("Hello");
+    float value = .5;
+    ImGui::SliderFloat("coucou", &value, 0, 1);
+    ImGui::End();
+}
 
+void Application::runScene(const float& dt) {
+    if (height_window_==0) // Happen when the window is minimized
+        return;
+
+    const auto aspect_ratio = static_cast<float>(width_window_) / height_window_;
+
+    const glm::vec3 background_color {1, 0, 0};
+
+    glBindVertexArray(vao_);
+    glClearColor(
+        background_color[0],
+        background_color[1],
+        background_color[2], 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    checkOpenGLError();
 }

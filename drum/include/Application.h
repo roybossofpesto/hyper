@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+#include <glm/glm.hpp>
+
 #include <cstdint>
 
 struct GLFWwindow;
@@ -22,6 +24,7 @@ protected:
     void endFrame();
     void destroy();
     void runImGui();
+    void runScene(const float& dt);
 
     ErrorCode error_code_;
     GLFWwindow* window_ = nullptr;
@@ -30,6 +33,16 @@ protected:
     Size height_window_ = 0;
     Size width_framebuffer_ = 0;
     Size height_framebuffer_ = 0;
+
+    enum struct MouseButton {
+      NoButton = 0,
+      LeftButon = 1,
+      MiddleButton = 2,
+      RightButton = 4
+    };
+    using MouseButtons = uint8_t;
+    MouseButtons mouse_pressed_ = static_cast<MouseButtons>(MouseButton::NoButton);
+    glm::vec2 last_mouse_position_ = glm::vec2(0.0, 0.0);
 
     GLuint vao_ = 0;
 };
