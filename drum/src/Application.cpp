@@ -6,17 +6,16 @@
 // clang-format on
 
 #include <spdlog/spdlog.h>
-// #include <fmt/core.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <imgui.h>
-// #include <imgui_demo.cpp>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <fonts/fontawesome5.h>
 #include <IconsFontAwesome5.h>
+#include <FindSolution.h>
 
 #include <cassert>
 #include <chrono>
@@ -468,44 +467,47 @@ void Application::runImGui() {
     }
 
     if (data.display_patterns) {
+        auto& state = data.find_solution_state;
+        const auto state_init = state;
+
         const auto cond = ImGuiCond_Appearing;
         ImGui::SetNextWindowPos(ImVec2(ui_window_spacing + ui_window_width + ui_window_spacing, top_offset + ui_window_spacing), cond);
         ImGui::SetNextWindowSize(ImVec2(ui_window_width, -1), cond);
         ImGui::Begin("patterns", &data.display_patterns, 0);
 
-        ImGui::SliderInt("pattern", &data.pattern_length, 2, 8);
-        data.pattern_length = std::max(data.pattern_length, 1);
-        data.pattern_length = std::min(data.pattern_length, 16);
+        ImGui::SliderInt("pattern", &state.pattern_length, 2, 8);
+        state.pattern_length = std::max(state.pattern_length, 1);
+        state.pattern_length = std::min(state.pattern_length, 16);
 
         ImGui::Separator();
 
         if (ImGui::Button("rand input")) {
-            std::uniform_int_distribution<int> dist(0, 1 << data.pattern_length - 1);
-            data.input_value = dist(data.rng);
+            std::uniform_int_distribution<int> dist(0, 1 << state.pattern_length - 1);
+            state.input_value = dist(data.rng);
         }
 
         ImGui::SameLine();
 
         if (ImGui::Button("rand output")) {
-            std::uniform_int_distribution<int> dist(0, 1 << data.pattern_length - 1);
-            data.output_value = dist(data.rng);
+            std::uniform_int_distribution<int> dist(0, 1 << state.pattern_length - 1);
+            state.output_value = dist(data.rng);
         }
 
-        ImGui::InputInt("input", &data.input_value);
-        data.input_value %= 1 << data.pattern_length;
-        ImGui::InputInt("output", &data.output_value);
-        data.output_value %= 1 << data.pattern_length;
+        ImGui::InputInt("input", &state.input_value);
+        state.input_value %= 1 << state.pattern_length;
+        ImGui::InputInt("output", &state.output_value);
+        state.output_value %= 1 << state.pattern_length;
 
-        if (ImGui::BitFlippers("#input_value", &data.input_value, data.pattern_length))
-            spdlog::critical("input {1:0{0}b}", data.pattern_length, data.input_value);
+        ImGui::BitFlippers("#input_value", &state.input_value, state.pattern_length);
+        ImGui::BitFlippers("#output_value", &state.output_value, state.pattern_length);
 
-        if (ImGui::BitFlippers("#output_value", &data.output_value, data.pattern_length))
-            spdlog::critical("output {1:0{0}b}", data.pattern_length, data.output_value);
+        if (state != state_init) const auto solution = find_solution(state);
 
         ImGui::Separator();
 
-        ImGui::BitDisplay(&data.input_value, data.pattern_length);
-        ImGui::BitDisplay(&data.output_value, data.pattern_length);
+        ImGui::BitDisplay(&state.input_value, state.pattern_length);
+        ImGui::BitDisplay(&state.output_value, state.pattern_length);
+
 
         ImGui::End();
     }

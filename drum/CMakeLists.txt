@@ -83,8 +83,10 @@ target_sources(drum
     PRIVATE
     "src/drum.cpp"
     "src/Application.cpp"
+    "src/FindSolution.cpp"
     PUBLIC
     "include/Application.h"
+    "include/FindSolution.h"
 )
 target_include_directories(drum
     PUBLIC

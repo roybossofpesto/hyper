@@ -1,5 +1,7 @@
 #pragma once
 
+#include <FindSolution.h>
+
 #include <glad/glad.h>
 
 #include <glm/glm.hpp>
@@ -14,10 +16,8 @@ struct Data {
     bool display_patterns = true;
     bool display_demo = false;
     glm::vec3 background_color {1, 0, 0};
-    int input_value = 0b10110111;
-    int output_value = 0b00101001;
-    int pattern_length = 4;
     std::mt19937_64 rng {42};
+    FindSolutionState find_solution_state;
 };
 
 class Application {
