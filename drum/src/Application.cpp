@@ -11,6 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <imgui.h>
+// #include <imgui_demo.cpp>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <fonts/fontawesome5.h>
@@ -359,6 +360,8 @@ void Application::runImGui() {
         ImGui::End();
     }
 
+    if (data.display_demo)
+        ImGui::ShowDemoWindow(&data.display_demo);
 }
 
 void Application::runScene(const float& dt) {
