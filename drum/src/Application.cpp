@@ -401,17 +401,40 @@ void Application::runImGui() {
         const auto cond = ImGuiCond_Appearing;
         ImGui::SetNextWindowPos(ImVec2(ui_window_spacing + ui_window_width + ui_window_spacing, top_offset + ui_window_spacing), cond);
         ImGui::SetNextWindowSize(ImVec2(ui_window_width, -1), cond);
-        ImGui::Begin("patterns", &data.display_options, 0);
+        ImGui::Begin("patterns", &data.display_patterns, 0);
 
         const ImVec2 button_size {40, 40};
 
         for (int kk=0; kk<4; kk++) {
             if (kk) ImGui::SameLine();
-            ImGui::PushID(kk);
             const std::string label = fmt::format("[{0:02d}]", kk);
+
+            const std::array<ImVec4, 4> off_colors ={
+                ImVec4{0., 0., 0., 1.},
+                ImVec4{.05, .05, .05, 1.},
+                ImVec4{.1, .1, .1, 1.},
+                ImVec4{1., 1., 1., 1.},
+            };
+
+            const std::array<ImVec4, 4> on_colors ={
+                ImVec4{1., 1., 1., 1.},
+                ImVec4{.95, .95, .95, 1.},
+                ImVec4{.9, .9, .9, 1.},
+                ImVec4{0., 0., 0., 1.},
+            };
+
+            const auto& colors = kk % 2 != 0 ? on_colors : off_colors;
+
+            ImGui::PushID(kk);
+            ImGui::PushStyleColor(ImGuiCol_Button, std::get<0>(colors));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, std::get<1>(colors));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, std::get<2>(colors));
+            ImGui::PushStyleColor(ImGuiCol_Text, std::get<3>(colors));
+            // ImGui::PushStyleColor(ImGuiCol_Text,, (ImVec4)ImColor::HSV(i/7.0f, c, c));
             if (ImGui::Button(label.c_str(), button_size)) {
                 spdlog::critical("coucou");
             }
+            ImGui::PopStyleColor(4);
             ImGui::PopID();
         }
 
