@@ -7,6 +7,9 @@
 
 #include <spdlog/spdlog.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -68,7 +71,7 @@ bool Application::initialize(const Size width, const Size height) {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        window_ = glfwCreateWindow(width, height, "Morpheus", nullptr, nullptr);
+        window_ = glfwCreateWindow(width, height, "drum machine", nullptr, nullptr);
         if (!window_) {
             spdlog::error("Failed to create the GLFW window.");
             error_code_ = 1;
@@ -139,19 +142,19 @@ bool Application::initialize(const Size width, const Size height) {
             }
         });
 
-        /*glfwSetCursorPosCallback(window_, [](GLFWwindow* window, double x, double y) {
-                Application::pImpl* pImpl_ =
-                static_cast<Application::pImpl*>(glfwGetWindowUserPointer(window));
-                assert(pImpl_);
+        glfwSetCursorPosCallback(window_, [](GLFWwindow* window, double xx, double yy) {
+            auto self = static_cast<Application*>(glfwGetWindowUserPointer(window));
+            assert(self);
 
-                auto& last_mouse_position = pImpl_->last_mouse_position_;
-                auto& quaternion = pImpl_->data.camera.quaternion_target;
+            glm::vec2& last_mouse_position = self->last_mouse_position_;
+            const glm::vec2 current_mouse_position {xx, yy};
+            // auto& quaternion = self->data.camera.quaternion_target;
 
-                if (pImpl_->mouse_pressed_ & static_cast<MouseButtons>(MouseButton::LeftButon)) {
-                const glm::vec2 delta = glm::vec2(x - last_mouse_position.x, y - last_mouse_position.y);
+            if (self->mouse_pressed_ & static_cast<MouseButtons>(MouseButton::LeftButon)) {
+                const glm::vec2 delta = current_mouse_position - last_mouse_position;
                 spdlog::trace("delta {},{}", delta.x, delta.y);
 
-                const glm::quat dqx = glm::angleAxis(delta.x * 1e-2f, glm::vec3(0, 1, 0));
+                /*const glm::quat dqx = glm::angleAxis(delta.x * 1e-2f, glm::vec3(0, 1, 0));
                 const glm::quat dqy = glm::angleAxis(delta.y * 1e-2f, glm::vec3(1, 0, 0));
                 spdlog::trace("dqx {},{},{},{}", dqx.x, dqx.y, dqx.z, dqx.w);
                 spdlog::trace("dqy {},{},{},{}", dqy.x, dqy.y, dqy.z, dqy.w);
@@ -161,13 +164,13 @@ bool Application::initialize(const Size width, const Size height) {
                         quaternion.x,
                         quaternion.y,
                         quaternion.z,
-                        quaternion.w);
+                        quaternion.w);*/
 
-                last_mouse_position = glm::vec2(x, y);
-                }
+                last_mouse_position = current_mouse_position;
+            }
         });
 
-        glfwSetScrollCallback(
+        /*glfwSetScrollCallback(
                 window_, [](GLFWwindow* window, double, double y_offset) {
                 if (ImGui::GetIO().WantCaptureMouse)
                 return;
@@ -330,10 +333,32 @@ void Application::destroy() {
 }
 
 void Application::runImGui() {
-    ImGui::Begin("Hello");
-    float value = .5;
-    ImGui::SliderFloat("coucou", &value, 0, 1);
-    ImGui::End();
+    if (data.display_options) {
+        const auto cond = ImGuiCond_Appearing;
+        ImGui::SetNextWindowPos(ImVec2(5, 5), cond);
+        ImGui::SetNextWindowSize(ImVec2(300, -1), cond);
+        ImGui::Begin("options", &data.display_options, 0);
+
+        {
+            static const std::vector<const char*> names {
+                "trace",
+                "debug",
+                "info",
+                "warning",
+                "critical",
+                "off",
+            };
+            auto log_level = static_cast<int>(spdlog::get("")->level());
+            assert(log_level < static_cast<int>(names.size()));
+            ImGui::Combo("log level", &log_level, names.data(), static_cast<int>(names.size()));
+            spdlog::set_level(static_cast<spdlog::level::level_enum>(log_level));
+        }
+
+        ImGui::ColorEdit3("clear color", glm::value_ptr(data.background_color));
+
+        ImGui::End();
+    }
+
 }
 
 void Application::runScene(const float& dt) {
@@ -342,13 +367,12 @@ void Application::runScene(const float& dt) {
 
     const auto aspect_ratio = static_cast<float>(width_window_) / height_window_;
 
-    const glm::vec3 background_color {1, 0, 0};
 
     glBindVertexArray(vao_);
     glClearColor(
-        background_color[0],
-        background_color[1],
-        background_color[2], 1.f);
+        data.background_color[0],
+        data.background_color[1],
+        data.background_color[2], 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     checkOpenGLError();

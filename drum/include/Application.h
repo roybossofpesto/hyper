@@ -8,6 +8,11 @@
 
 struct GLFWwindow;
 
+struct Data {
+    bool display_options = true;
+    glm::vec3 background_color {1, 0, 0};
+};
+
 class Application {
 public:
     using Size = int32_t;
@@ -45,4 +50,6 @@ protected:
     glm::vec2 last_mouse_position_ = glm::vec2(0.0, 0.0);
 
     GLuint vao_ = 0;
+
+    Data data;
 };
