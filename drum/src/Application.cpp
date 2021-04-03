@@ -27,11 +27,12 @@ constexpr float ui_main_menu_height = 24;
 constexpr float ui_window_width = 330;
 
 namespace ImGui {
-    bool BitFlipper(int* value_raw, const int kk, const ImVec2 button_size);
+    bool BitButton(int* value_raw, const int kk, const bool is_read_only, const ImVec2 button_size);
     bool BitFlippers(const char* label, int* value_raw, const int pattern_length, const ImVec2 button_size = {30, 30});
+    void BitDisplay(int* value_raw, const int pattern_length, const ImVec2 button_size = {30, 30});
 }
 
-bool ImGui::BitFlipper(int* value_raw, const int kk, const ImVec2 button_size) {
+bool ImGui::BitButton(int* value_raw, const int kk, const bool is_read_only, const ImVec2 button_size) {
     assert(value_raw);
     unsigned int value = static_cast<unsigned int>(*value_raw);
 
@@ -64,6 +65,8 @@ bool ImGui::BitFlipper(int* value_raw, const int kk, const ImVec2 button_size) {
     ImGui::PopStyleColor(4);
     ImGui::PopID();
 
+    if (is_read_only) return false;
+
     if (updated) value ^= mask;
     *value_raw = static_cast<int>(value);
 
@@ -72,17 +75,26 @@ bool ImGui::BitFlipper(int* value_raw, const int kk, const ImVec2 button_size) {
 
 bool ImGui::BitFlippers(const char* label, int* value_raw, const int pattern_length, const ImVec2 button_size)
 {
+    assert(label);
     ImGui::PushID(label);
     bool any = false;
     for (int kk=0; kk<pattern_length; kk++) {
         if (kk) ImGui::SameLine();
         const int kk_ = pattern_length - 1 - kk;
-        any |= ImGui::BitFlipper(value_raw, kk_, button_size);
+        any |= ImGui::BitButton(value_raw, kk_, false, button_size);
     }
     ImGui::PopID();
     return any;
 }
 
+void ImGui::BitDisplay(int* value_raw, const int pattern_length, const ImVec2 button_size)
+{
+    for (int kk=0; kk<pattern_length; kk++) {
+        if (kk) ImGui::SameLine();
+        const int kk_ = pattern_length - 1 - kk;
+        ImGui::BitButton(value_raw, kk_, true, button_size);
+    }
+}
 
 Application::Application(const Size width_window, const Size height_window) {
     using Clock = std::chrono::high_resolution_clock;
@@ -492,8 +504,8 @@ void Application::runImGui() {
 
         ImGui::Separator();
 
-        ImGui::BitFlippers("#input_value", &data.input_value, data.pattern_length);
-        ImGui::BitFlippers("#output_value", &data.output_value, data.pattern_length);
+        ImGui::BitDisplay(&data.input_value, data.pattern_length);
+        ImGui::BitDisplay(&data.output_value, data.pattern_length);
 
         ImGui::End();
     }
