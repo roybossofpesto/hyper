@@ -80,18 +80,22 @@ endif()
 
 add_executable(drum)
 target_sources(drum
+    PRIVATE
+    "src/drum.cpp"
+    "src/Application.cpp"
     PUBLIC
-    "drum.cpp"
+    "include/Application.h"
 )
-#target_include_directories(drum
-#    PUBLIC
-#    "include"
-#)
+target_include_directories(drum
+    PUBLIC
+    "include"
+)
 target_link_libraries(drum
     PRIVATE
     spdlog
     imgui
     glfw
+    PUBLIC
     glm
 )
 
@@ -108,5 +112,3 @@ target_link_libraries(drum
 #add_subdirectory(reconstruction)
 #add_subdirectory(app)
 #
-
-
