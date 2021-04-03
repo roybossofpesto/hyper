@@ -6,6 +6,7 @@
 // clang-format on
 
 #include <spdlog/spdlog.h>
+// #include <fmt/core.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -402,8 +403,16 @@ void Application::runImGui() {
         ImGui::SetNextWindowSize(ImVec2(ui_window_width, -1), cond);
         ImGui::Begin("patterns", &data.display_options, 0);
 
-        if (ImGui::Button("coucou")) {
-            spdlog::critical("coucou");
+        const ImVec2 button_size {40, 40};
+
+        for (int kk=0; kk<4; kk++) {
+            if (kk) ImGui::SameLine();
+            ImGui::PushID(kk);
+            const std::string label = fmt::format("[{0:02d}]", kk);
+            if (ImGui::Button(label.c_str(), button_size)) {
+                spdlog::critical("coucou");
+            }
+            ImGui::PopID();
         }
 
         ImGui::End();
