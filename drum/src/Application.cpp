@@ -28,7 +28,7 @@ constexpr float ui_window_width = 330;
 namespace ImGui {
     bool BitButton(int* value_raw, const int kk, const bool is_read_only, const ImVec2 button_size);
     bool BitFlippers(const char* label, int* value_raw, const int pattern_length, const ImVec2 button_size = {30, 30});
-    void BitDisplay(int* value_raw, const int pattern_length, const ImVec2 button_size = {30, 30});
+    void BitDisplay(const int value_raw, const int pattern_length, const ImVec2 button_size = {30, 30});
 }
 
 bool ImGui::BitButton(int* value_raw, const int kk, const bool is_read_only, const ImVec2 button_size) {
@@ -86,12 +86,13 @@ bool ImGui::BitFlippers(const char* label, int* value_raw, const int pattern_len
     return any;
 }
 
-void ImGui::BitDisplay(int* value_raw, const int pattern_length, const ImVec2 button_size)
+void ImGui::BitDisplay(const int value, const int pattern_length, const ImVec2 button_size)
 {
+    int value_raw = value;
     for (int kk=0; kk<pattern_length; kk++) {
         if (kk) ImGui::SameLine();
         const int kk_ = pattern_length - 1 - kk;
-        ImGui::BitButton(value_raw, kk_, true, button_size);
+        ImGui::BitButton(&value_raw, kk_, true, button_size);
     }
 }
 
@@ -501,13 +502,13 @@ void Application::runImGui() {
         ImGui::BitFlippers("#input_value", &state.input_value, state.pattern_length);
         ImGui::BitFlippers("#output_value", &state.output_value, state.pattern_length);
 
-        if (state != state_init) const auto solution = find_solution(state);
+        if (state != state_init) data.find_solution_data = find_solution(state);
 
         ImGui::Separator();
 
-        ImGui::BitDisplay(&state.input_value, state.pattern_length);
-        ImGui::BitDisplay(&state.output_value, state.pattern_length);
-
+        ImGui::Text(fmt::format("{} steps", data.find_solution_data.solution.size()).c_str());
+        for (const auto& step : data.find_solution_data.solution)
+            ImGui::BitDisplay(step, state.pattern_length);
 
         ImGui::End();
     }

@@ -18,6 +18,7 @@ struct Data {
     glm::vec3 background_color {1, 0, 0};
     std::mt19937_64 rng {42};
     FindSolutionState find_solution_state;
+    FindSolutionData find_solution_data;
 };
 
 class Application {

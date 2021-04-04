@@ -53,9 +53,19 @@ std::vector<UnsignedIntegral> generate_nexts(const UnsignedIntegral pattern_leng
     return nexts;
 }
 
+using Tuple = std::tuple<float, UnsignedIntegral, UnsignedIntegral>;
+
+struct TupleLess {
+    bool operator()(const Tuple& aa, const Tuple& bb) const {
+        using std::get;
+        if (get<0>(aa) != get<0>(bb)) return get<0>(aa) > get<0>(bb);
+        if (get<1>(aa) != get<1>(bb)) return get<1>(aa) < get<1>(bb);
+        return get<2>(aa) < get<2>(bb);
+    }
+};
+
 std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_length, const UnsignedIntegral input_value, const UnsignedIntegral output_value, Rng& rng) {
-    using Tuple = std::tuple<float, UnsignedIntegral, UnsignedIntegral>;
-    using Queue = std::priority_queue<Tuple>;
+    using Queue = std::priority_queue<Tuple, std::vector<Tuple>, TupleLess>;
     using Ancestors = std::unordered_map<UnsignedIntegral, UnsignedIntegral>;
     using Dist = std::uniform_real_distribution<float>;
 
@@ -76,7 +86,7 @@ std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_lengt
             continue;
 
         ancestors.insert(std::make_pair(current_value, current_ancestor));
-        spdlog::info("** {1} {2:0{0}b} {2} {3}", pattern_length, current_distance, current_value, ancestors.size());
+        spdlog::debug("** {1} {2:0{0}b} {2} {3}", pattern_length, current_distance, current_value, ancestors.size());
 
         if (current_value == output_value) {
             UnsignedIntegral current = current_value;
@@ -91,7 +101,7 @@ std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_lengt
         }
 
         for (const auto next_value : generate_nexts(pattern_length, current_value)) {
-            spdlog::info("{1:0{0}b} -> {2:0{0}b}", pattern_length, current_value, next_value);
+            spdlog::debug("{1:0{0}b} -> {2:0{0}b}", pattern_length, current_value, next_value);
             queue.emplace(Tuple{current_distance + dist(rng), next_value, current_value});
         }
     }
@@ -99,13 +109,20 @@ std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_lengt
     return {};
 }
 
+std::vector<int> reverse_and_cast(const std::vector<UnsignedIntegral>& path) {
+    std::vector<int> path_;
+    for (auto iter=std::crbegin(path), end=std::crend(path); iter!=end; iter++)
+        path_.emplace_back(static_cast<int>(*iter));
+    return path_;
+}
+
 FindSolutionData find_solution(const FindSolutionState& state) {
     spdlog::critical("find {1:0{0}b} -> {2:0{0}b} {0}bits", state.pattern_length, state.input_value, state.output_value);
 
     Rng rng(42);
-    shortest_path(state.pattern_length, state.input_value, state.output_value, rng);
 
     FindSolutionData data;
-    data.number_of_solutions = 3;
+    data.solution = reverse_and_cast(shortest_path(state.pattern_length, state.input_value, state.output_value, rng));
+
     return data;
 }
