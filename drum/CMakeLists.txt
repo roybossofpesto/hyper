@@ -82,11 +82,11 @@ add_executable(drum)
 target_sources(drum
     PRIVATE
     "src/drum.cpp"
-    "src/Application.cpp"
     "src/FindSolution.cpp"
+    "src/Application.cpp"
     PUBLIC
-    "include/Application.h"
     "include/FindSolution.h"
+    "include/Application.h"
 )
 target_include_directories(drum
     PUBLIC

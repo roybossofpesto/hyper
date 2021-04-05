@@ -469,7 +469,6 @@ void Application::runImGui() {
 
     if (data.display_patterns) {
         auto& state = data.find_solution_state;
-        const auto state_init = state;
 
         const auto cond = ImGuiCond_Appearing;
         ImGui::SetNextWindowPos(ImVec2(ui_window_spacing + ui_window_width + ui_window_spacing, top_offset + ui_window_spacing), cond);
@@ -503,13 +502,14 @@ void Application::runImGui() {
         state.output_value %= 1 << state.pattern_length;
         ImGui::PopID();
 
-
         ImGui::BitFlippers("#input_value", &state.input_value, state.pattern_length);
         ImGui::BitFlippers("#output_value", &state.output_value, state.pattern_length);
 
-        if (state != state_init) data.find_solution_data = find_solution(state);
+        if (find_solution_action.update(state)) {
+            spdlog::critical("update");
+        }
 
-        ImGui::Separator();
+        /*ImGui::Separator();
 
         const std::string solution_status =
             data.find_solution_data.solution.empty() ? "no solution" :
@@ -517,7 +517,7 @@ void Application::runImGui() {
         ImGui::Text(solution_status.c_str());
 
         for (const auto& step : data.find_solution_data.solution)
-            ImGui::BitDisplay(step, state.pattern_length);
+            ImGui::BitDisplay(step, state.pattern_length);*/
 
         ImGui::End();
     }

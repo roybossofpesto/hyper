@@ -17,8 +17,7 @@ struct Data {
     bool display_demo = false;
     glm::vec3 background_color {1, 0, 0};
     std::mt19937_64 rng {42};
-    FindSolutionState find_solution_state;
-    FindSolutionData find_solution_data;
+    FindSolution::State find_solution_state;
 };
 
 class Application {
@@ -60,4 +59,5 @@ protected:
     GLuint vao_ = 0;
 
     Data data;
+    FindSolutionAction find_solution_action;
 };
