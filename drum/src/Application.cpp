@@ -473,7 +473,7 @@ void Application::runImGui() {
 
         const auto cond = ImGuiCond_Appearing;
         ImGui::SetNextWindowPos(ImVec2(ui_window_spacing + ui_window_width + ui_window_spacing, top_offset + ui_window_spacing), cond);
-        ImGui::SetNextWindowSize(ImVec2(ui_window_width, -1), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(-1, -1), ImGuiCond_Always);
         ImGui::Begin("patterns", &data.display_patterns, 0);
 
         ImGui::SliderInt("pattern", &state.pattern_length, 2, 8);
@@ -482,22 +482,26 @@ void Application::runImGui() {
 
         ImGui::Separator();
 
-        if (ImGui::Button("rand input")) {
+        ImGui::PushID("input");
+        if (ImGui::Button("rand")) {
             std::uniform_int_distribution<int> dist(0, 1 << state.pattern_length - 1);
             state.input_value = dist(data.rng);
         }
-
         ImGui::SameLine();
+        ImGui::InputInt("input", &state.input_value);
+        state.input_value %= 1 << state.pattern_length;
+        ImGui::PopID();
 
-        if (ImGui::Button("rand output")) {
+        ImGui::PushID("output");
+        if (ImGui::Button("rand")) {
             std::uniform_int_distribution<int> dist(0, 1 << state.pattern_length - 1);
             state.output_value = dist(data.rng);
         }
-
-        ImGui::InputInt("input", &state.input_value);
-        state.input_value %= 1 << state.pattern_length;
+        ImGui::SameLine();
         ImGui::InputInt("output", &state.output_value);
         state.output_value %= 1 << state.pattern_length;
+        ImGui::PopID();
+
 
         ImGui::BitFlippers("#input_value", &state.input_value, state.pattern_length);
         ImGui::BitFlippers("#output_value", &state.output_value, state.pattern_length);
@@ -506,7 +510,11 @@ void Application::runImGui() {
 
         ImGui::Separator();
 
-        ImGui::Text(fmt::format("{} steps", data.find_solution_data.solution.size()).c_str());
+        const std::string solution_status =
+            data.find_solution_data.solution.empty() ? "no solution" :
+            fmt::format("{} steps solution", data.find_solution_data.solution.size());
+        ImGui::Text(solution_status.c_str());
+
         for (const auto& step : data.find_solution_data.solution)
             ImGui::BitDisplay(step, state.pattern_length);
 

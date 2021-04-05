@@ -82,8 +82,7 @@ std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_lengt
         const auto& current_value = std::get<1>(current_tuple);
         queue.pop();
 
-        spdlog::info("** dist {1} value {2:0{0}b} nancestors {3}", pattern_length, current_distance, current_value, ancestors.size());
-
+        spdlog::debug("** dist {1} value {2:0{0}b} nancestors {3}", pattern_length, current_distance, current_value, ancestors.size());
         assert(ancestors.find(current_value) != std::cend(ancestors));
 
         if (current_value == output_value) {
@@ -101,7 +100,7 @@ std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_lengt
         for (const auto next_value : generate_nexts(pattern_length, current_value)) {
             if (ancestors.find(next_value) != std::cend(ancestors))
                 continue;
-            spdlog::info("{1:0{0}b} -> {2:0{0}b}", pattern_length, current_value, next_value);
+            spdlog::debug("{1:0{0}b} -> {2:0{0}b}", pattern_length, current_value, next_value);
             queue.emplace(Tuple{current_distance + dist(rng), next_value});
             ancestors.insert(std::make_pair(next_value, current_value));
         }
@@ -118,12 +117,15 @@ std::vector<int> reverse_and_cast(const std::vector<UnsignedIntegral>& path) {
 }
 
 FindSolutionData find_solution(const FindSolutionState& state) {
-    spdlog::critical("find {1:0{0}b} -> {2:0{0}b} {0}bits", state.pattern_length, state.input_value, state.output_value);
+    spdlog::critical("find solution {1:0{0}b} -> {2:0{0}b} {0}bits", state.pattern_length, state.input_value, state.output_value);
 
     Rng rng(42);
 
     FindSolutionData data;
     data.solution = reverse_and_cast(shortest_path(state.pattern_length, state.input_value, state.output_value, rng));
+
+    spdlog::critical(data.solution.empty() ? "no solution" : "{0} steps solution", data.solution.size());
+
 
     return data;
 }
