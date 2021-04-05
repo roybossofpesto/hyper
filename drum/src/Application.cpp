@@ -479,6 +479,7 @@ void Application::runImGui() {
         ImGui::SliderInt("pattern", &state.pattern_length, 2, 8);
         state.pattern_length = std::max(state.pattern_length, 1);
         state.pattern_length = std::min(state.pattern_length, 16);
+        ImGui::InputInt("rnd seed", &state.rng_seed);
 
         ImGui::Separator();
 

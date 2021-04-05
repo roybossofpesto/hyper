@@ -9,6 +9,7 @@ bool FindSolutionState::operator!=(const FindSolutionState& other) const {
     if (pattern_length != other.pattern_length) return true;
     if (input_value != other.input_value) return true;
     if (output_value != other.output_value) return true;
+    if (rng_seed != other.rng_seed) return true;
     return false;
 }
 
@@ -70,11 +71,10 @@ std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_lengt
 
     Queue queue;
     Ancestors ancestors;
-    Dist dist(1., 1.);
+    Dist dist(0.8, 1.2);
 
     queue.emplace(Tuple{0., input_value});
     ancestors.insert(std::make_pair(input_value, input_value));
-
 
     while (!queue.empty()) {
         const Tuple current_tuple = queue.top();
@@ -119,7 +119,7 @@ std::vector<int> reverse_and_cast(const std::vector<UnsignedIntegral>& path) {
 FindSolutionData find_solution(const FindSolutionState& state) {
     spdlog::critical("find solution {1:0{0}b} -> {2:0{0}b} {0}bits", state.pattern_length, state.input_value, state.output_value);
 
-    Rng rng(42);
+    Rng rng(static_cast<size_t>(state.rng_seed));
 
     FindSolutionData data;
     data.solution = reverse_and_cast(shortest_path(state.pattern_length, state.input_value, state.output_value, rng));
