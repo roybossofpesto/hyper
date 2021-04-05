@@ -86,6 +86,7 @@ target_sources(drum
     "src/FindSolution.cpp"
     "src/Application.cpp"
     PUBLIC
+    "include/Action.h"
     "include/BitGui.h"
     "include/FindSolution.h"
     "include/Application.h"
