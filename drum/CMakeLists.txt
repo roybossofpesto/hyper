@@ -82,9 +82,11 @@ add_executable(drum)
 target_sources(drum
     PRIVATE
     "src/drum.cpp"
+    "src/BitGui.cpp"
     "src/FindSolution.cpp"
     "src/Application.cpp"
     PUBLIC
+    "include/BitGui.h"
     "include/FindSolution.h"
     "include/Application.h"
 )
