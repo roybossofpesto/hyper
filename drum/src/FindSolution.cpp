@@ -122,9 +122,12 @@ FindSolution::Data FindSolution::run(const State& state) {
     Rng rng(static_cast<size_t>(state.rng_seed));
 
     Data data;
-    data.solution = reverse_and_cast(shortest_path(state.pattern_length, state.input_value, state.output_value, rng));
+    for (int exp=0; exp<1024; exp++) {
+        const Data::HashedPath hashed_path {reverse_and_cast(shortest_path(state.pattern_length, state.input_value, state.output_value, rng))};
+        data.solutions[hashed_path]++;
+    }
 
-    spdlog::critical(data.solution.empty() ? "no solution" : "{0} steps solution", data.solution.size());
+    spdlog::critical("{0} solutions", data.solutions.size());
 
     return data;
 }

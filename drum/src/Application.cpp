@@ -402,7 +402,7 @@ void Application::runImGui() {
 
         const auto cond = ImGuiCond_Appearing;
         ImGui::SetNextWindowPos(ImVec2(ui_window_spacing + ui_window_width + ui_window_spacing, top_offset + ui_window_spacing), cond);
-        ImGui::SetNextWindowSize(ImVec2(-1, -1), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(ui_window_width, -1), ImGuiCond_Always);
         ImGui::Begin("patterns", &data.display_patterns, 0);
 
         ImGui::SliderInt("pattern", &state.pattern_length, 2, 8);
@@ -439,15 +439,38 @@ void Application::runImGui() {
             spdlog::critical("update");
         }
 
-        /*ImGui::Separator();
+        ImGui::Separator();
 
-        const std::string solution_status =
-            data.find_solution_data.solution.empty() ? "no solution" :
-            fmt::format("{} steps solution", data.find_solution_data.solution.size());
-        ImGui::Text(solution_status.c_str());
+        if (find_solution_action.valid()) {
+            const auto& valid_state = find_solution_action.validState();
+            const auto& valid_data = find_solution_action.validData();
 
-        for (const auto& step : data.find_solution_data.solution)
-            ImGui::BitDisplay(step, state.pattern_length);*/
+            const std::string solution_status = fmt::format("{1:0{0}b} -> {2:0{0}b} {3} solutions",
+                valid_state.pattern_length,
+                valid_state.input_value,
+                valid_state.output_value,
+                valid_data.solutions.size());
+            ImGui::Text(solution_status.c_str());
+
+            if (!valid_data.solutions.empty() && ImGui::BeginTabBar("##rendering_tabs", ImGuiTabBarFlags_FittingPolicyScroll)) {
+                for (const auto& solution : valid_data.solutions) {
+                    const auto& hash = std::get<0>(solution.first);
+                    const auto& path = std::get<1>(solution.first);
+                    const auto& count = solution.second;
+
+                    ImGui::PushID(hash);
+                    if (ImGui::BeginTabItem(fmt::format("#{0:04x}", hash % (1 << 16)).c_str())) {
+                        ImGui::Text(fmt::format("{0} counts", count).c_str());
+                        for (const auto& step : path) ImGui::BitDisplay(step, state.pattern_length);
+                        ImGui::EndTabItem();
+                    }
+                    ImGui::PopID();
+                }
+                ImGui::EndTabBar();
+            }
+
+        }
+
 
         ImGui::End();
     }

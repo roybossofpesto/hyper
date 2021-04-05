@@ -1,7 +1,10 @@
 #pragma once
 
+#include <ContainerHasher.h>
+#include <HashedItem.h>
 #include <Action.h>
 
+#include <unordered_map>
 #include <vector>
 
 struct FindSolution {
@@ -14,7 +17,10 @@ struct FindSolution {
     };
 
     struct Data {
-        std::vector<int> solution;
+        using Path = std::vector<int>;
+        using HashedPath = HashedItem<Path, ContainerHasher<Path>>;
+        using CountHashedPaths = std::unordered_map<HashedPath, size_t, HashedPath::Hasher>;
+        CountHashedPaths solutions;
     };
 
     static Data run(const State& state);
