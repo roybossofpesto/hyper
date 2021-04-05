@@ -53,14 +53,13 @@ std::vector<UnsignedIntegral> generate_nexts(const UnsignedIntegral pattern_leng
     return nexts;
 }
 
-using Tuple = std::tuple<float, UnsignedIntegral, UnsignedIntegral>;
+using Tuple = std::tuple<float, UnsignedIntegral>;
 
 struct TupleLess {
     bool operator()(const Tuple& aa, const Tuple& bb) const {
         using std::get;
         if (get<0>(aa) != get<0>(bb)) return get<0>(aa) > get<0>(bb);
-        if (get<1>(aa) != get<1>(bb)) return get<1>(aa) < get<1>(bb);
-        return get<2>(aa) < get<2>(bb);
+        return get<1>(aa) < get<1>(bb);
     }
 };
 
@@ -73,7 +72,7 @@ std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_lengt
     Ancestors ancestors;
     Dist dist(1., 1.);
 
-    queue.emplace(Tuple{0., input_value, input_value});
+    queue.emplace(Tuple{0., input_value});
     ancestors.insert(std::make_pair(input_value, input_value));
 
 
@@ -81,7 +80,6 @@ std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_lengt
         const Tuple current_tuple = queue.top();
         const auto& current_distance = std::get<0>(current_tuple);
         const auto& current_value = std::get<1>(current_tuple);
-        const auto& current_ancestor = std::get<2>(current_tuple);
         queue.pop();
 
         spdlog::info("** dist {1} value {2:0{0}b} nancestors {3}", pattern_length, current_distance, current_value, ancestors.size());
@@ -104,7 +102,7 @@ std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_lengt
             if (ancestors.find(next_value) != std::cend(ancestors))
                 continue;
             spdlog::info("{1:0{0}b} -> {2:0{0}b}", pattern_length, current_value, next_value);
-            queue.emplace(Tuple{current_distance + dist(rng), next_value, current_value});
+            queue.emplace(Tuple{current_distance + dist(rng), next_value});
             ancestors.insert(std::make_pair(next_value, current_value));
         }
     }

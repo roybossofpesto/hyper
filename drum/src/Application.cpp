@@ -473,7 +473,7 @@ void Application::runImGui() {
 
         const auto cond = ImGuiCond_Appearing;
         ImGui::SetNextWindowPos(ImVec2(ui_window_spacing + ui_window_width + ui_window_spacing, top_offset + ui_window_spacing), cond);
-        ImGui::SetNextWindowSize(ImVec2(ui_window_width, -1), cond);
+        ImGui::SetNextWindowSize(ImVec2(ui_window_width, -1), ImGuiCond_Always);
         ImGui::Begin("patterns", &data.display_patterns, 0);
 
         ImGui::SliderInt("pattern", &state.pattern_length, 2, 8);
