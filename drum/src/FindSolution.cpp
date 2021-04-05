@@ -74,6 +74,8 @@ std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_lengt
     Dist dist(1., 1.);
 
     queue.emplace(Tuple{0., input_value, input_value});
+    ancestors.insert(std::make_pair(input_value, input_value));
+
 
     while (!queue.empty()) {
         const Tuple current_tuple = queue.top();
@@ -82,11 +84,9 @@ std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_lengt
         const auto& current_ancestor = std::get<2>(current_tuple);
         queue.pop();
 
-        if (ancestors.find(current_value) != std::cend(ancestors))
-            continue;
+        spdlog::info("** dist {1} value {2:0{0}b} nancestors {3}", pattern_length, current_distance, current_value, ancestors.size());
 
-        ancestors.insert(std::make_pair(current_value, current_ancestor));
-        spdlog::debug("** {1} {2:0{0}b} {2} {3}", pattern_length, current_distance, current_value, ancestors.size());
+        assert(ancestors.find(current_value) != std::cend(ancestors));
 
         if (current_value == output_value) {
             UnsignedIntegral current = current_value;
@@ -101,8 +101,11 @@ std::vector<UnsignedIntegral> shortest_path(const UnsignedIntegral pattern_lengt
         }
 
         for (const auto next_value : generate_nexts(pattern_length, current_value)) {
-            spdlog::debug("{1:0{0}b} -> {2:0{0}b}", pattern_length, current_value, next_value);
+            if (ancestors.find(next_value) != std::cend(ancestors))
+                continue;
+            spdlog::info("{1:0{0}b} -> {2:0{0}b}", pattern_length, current_value, next_value);
             queue.emplace(Tuple{current_distance + dist(rng), next_value, current_value});
+            ancestors.insert(std::make_pair(next_value, current_value));
         }
     }
 
