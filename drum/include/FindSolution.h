@@ -13,6 +13,7 @@ struct FindSolution {
         int input_value = 0b10110111;
         int output_value = 0b00101001;
         int rng_seed = 42;
+        int num_exps = 1024;
         bool operator!=(const State& other) const;
     };
 

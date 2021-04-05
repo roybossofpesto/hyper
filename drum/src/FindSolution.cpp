@@ -10,6 +10,7 @@ bool FindSolution::State::operator!=(const FindSolution::State& other) const {
     if (input_value != other.input_value) return true;
     if (output_value != other.output_value) return true;
     if (rng_seed != other.rng_seed) return true;
+    if (num_exps != other.num_exps) return true;
     return false;
 }
 
@@ -117,13 +118,14 @@ std::vector<int> reverse_and_cast(const std::vector<UnsignedIntegral>& path) {
 }
 
 FindSolution::Data FindSolution::run(const State& state) {
-    spdlog::critical("find solution {1:0{0}b} -> {2:0{0}b} {0}bits", state.pattern_length, state.input_value, state.output_value);
+    spdlog::critical("find solution {1:0{0}b} -> {2:0{0}b} {0} bits {3} exps", state.pattern_length, state.input_value, state.output_value, state.num_exps);
 
     Rng rng(static_cast<size_t>(state.rng_seed));
 
     Data data;
-    for (int exp=0; exp<1024; exp++) {
+    for (int exp=0; exp<state.num_exps; exp++) {
         const Data::HashedPath hashed_path {reverse_and_cast(shortest_path(state.pattern_length, state.input_value, state.output_value, rng))};
+        if (std::get<1>(hashed_path).empty()) continue;
         data.solutions[hashed_path]++;
     }
 

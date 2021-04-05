@@ -409,6 +409,7 @@ void Application::runImGui() {
         state.pattern_length = std::max(state.pattern_length, 1);
         state.pattern_length = std::min(state.pattern_length, 16);
         ImGui::InputInt("rnd seed", &state.rng_seed);
+        ImGui::InputInt("num exps", &state.num_exps);
 
         ImGui::Separator();
 
@@ -435,11 +436,11 @@ void Application::runImGui() {
         ImGui::BitFlippers("#input_value", &state.input_value, state.pattern_length);
         ImGui::BitFlippers("#output_value", &state.output_value, state.pattern_length);
 
-        if (find_solution_action.update(state)) {
-            spdlog::critical("update");
-        }
-
         ImGui::Separator();
+
+        if (find_solution_action.update(state)) spdlog::critical("found solution");
+
+        ImGui::Text(fmt::format("running {} valid {}", find_solution_action.running(), find_solution_action.valid()).c_str());
 
         if (find_solution_action.valid()) {
             const auto& valid_state = find_solution_action.validState();
@@ -459,8 +460,9 @@ void Application::runImGui() {
                     const auto& count = solution.second;
 
                     ImGui::PushID(hash);
+                    assert(path.size());
                     if (ImGui::BeginTabItem(fmt::format("#{0:04x}", hash % (1 << 16)).c_str())) {
-                        ImGui::Text(fmt::format("{0} counts", count).c_str());
+                        ImGui::Text(fmt::format("{1} steps {0} counts {2:.1f}%%", count, path.size() - 1, 100. * count / valid_state.num_exps).c_str());
                         for (const auto& step : path) ImGui::BitDisplay(step, state.pattern_length);
                         ImGui::EndTabItem();
                     }
