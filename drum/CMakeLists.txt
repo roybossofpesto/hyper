@@ -105,6 +105,7 @@ target_link_libraries(drum
     glm
 )
 
+include(soloud)
 #include(nativefiledialog)
 #include(nlohmann_json)
 #include(clhpp)
