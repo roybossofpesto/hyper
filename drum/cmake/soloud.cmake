@@ -2,9 +2,13 @@ if(TARGET soloud::soloud)
     return()
 endif()
 
+message(STATUS "soloud::soloud")
+
 find_package(SDL2 REQUIRED)
 message(STATUS "SDL2 ${SDL2_FOUND} ${SDL2_INCLUDE_DIRS} ${SDL2_LIBRARIES}")
-message(STATUS "soloud::soloud")
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -19,14 +23,19 @@ add_library(soloud::soloud ALIAS soloud)
 
 file(GLOB_RECURSE soloud_BACKEND "${soloud_SOURCE_DIR}/src/backend/sdl2_static/**.c*")
 file(GLOB_RECURSE soloud_CORE "${soloud_SOURCE_DIR}/src/core/**.c*")
-message(STATUS "${soloud_BACKEND} ${soloud_CORE}")
+file(GLOB_RECURSE soloud_FILTER "${soloud_SOURCE_DIR}/src/filter/**.c*")
+file(GLOB_RECURSE soloud_AUDIOSOURCE "${soloud_SOURCE_DIR}/src/audiosource/**.c*")
+message(STATUS "BACKEND ${soloud_BACKEND}")
+message(STATUS "CORE ${soloud_CORE}")
+message(STATUS "FILTER ${soloud_FILTER}")
+message(STATUS "soloud_AUDIOSOURCE ${soloud_AUDIOSOURCE}")
 
 target_sources(soloud
     PRIVATE
     ${soloud_BACKEND}
     ${soloud_CORE}
-    #"${soloud_SOURCE_DIR}/src/nfd_common.h"
-    #"${soloud_SOURCE_DIR}/src/nfd_common.c"
+    ${soloud_FILTER}
+    ${soloud_AUDIOSOURCE}
 )
 
 target_include_directories(soloud
@@ -41,8 +50,9 @@ target_compile_definitions(soloud
 )
 
 target_link_libraries(soloud
-    PUBLIC
+    PRIVATE
     "${SDL2_LIBRARIES}"
+    Threads::Threads
 )
 
 #if(WIN32)
