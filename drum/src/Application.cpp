@@ -302,6 +302,8 @@ bool Application::initialize(const Size width, const Size height) {
     { // init soloud
         spdlog::info("init soloud");
         soloud.init();
+
+        if (sample_hihat.load("samples/hihat.wav") != SoLoud::SO_NO_ERROR) return false;
     }
 
     return true;
@@ -403,6 +405,7 @@ void Application::runImGui() {
 
         ImGui::Separator();
 
+        if (ImGui::Button("hihat")) soloud.play(sample_hihat);
         ImGui::Text("active voices %d", soloud.getActiveVoiceCount());
 
         ImGui::End();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <soloud.h>
+#include <soloud_wav.h>
 
 #include <FindSolution.h>
 
@@ -62,4 +63,5 @@ protected:
     Data data;
     FindSolutionAction find_solution_action;
     SoLoud::Soloud soloud;
+    SoLoud::Wav sample_hihat;
 };
