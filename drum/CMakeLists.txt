@@ -116,6 +116,7 @@ target_link_libraries(drum
     spdlog
     imgui
     glfw
+    soloud::soloud
     PUBLIC
     glm
 )

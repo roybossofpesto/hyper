@@ -25,10 +25,10 @@ file(GLOB_RECURSE soloud_BACKEND "${soloud_SOURCE_DIR}/src/backend/sdl2_static/*
 file(GLOB_RECURSE soloud_CORE "${soloud_SOURCE_DIR}/src/core/**.c*")
 file(GLOB_RECURSE soloud_FILTER "${soloud_SOURCE_DIR}/src/filter/**.c*")
 file(GLOB_RECURSE soloud_AUDIOSOURCE "${soloud_SOURCE_DIR}/src/audiosource/**.c*")
-message(STATUS "BACKEND ${soloud_BACKEND}")
-message(STATUS "CORE ${soloud_CORE}")
-message(STATUS "FILTER ${soloud_FILTER}")
-message(STATUS "soloud_AUDIOSOURCE ${soloud_AUDIOSOURCE}")
+#message(STATUS "BACKEND ${soloud_BACKEND}")
+#message(STATUS "CORE ${soloud_CORE}")
+#message(STATUS "FILTER ${soloud_FILTER}")
+#message(STATUS "AUDIOSOURCE ${soloud_AUDIOSOURCE}")
 
 target_sources(soloud
     PRIVATE

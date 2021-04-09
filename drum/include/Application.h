@@ -1,9 +1,10 @@
 #pragma once
 
+#include <soloud.h>
+
 #include <FindSolution.h>
 
 #include <glad/glad.h>
-
 #include <glm/glm.hpp>
 
 #include <cstdint>
@@ -60,4 +61,5 @@ protected:
 
     Data data;
     FindSolutionAction find_solution_action;
+    SoLoud::Soloud soloud;
 };

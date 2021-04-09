@@ -299,6 +299,11 @@ bool Application::initialize(const Size width, const Size height) {
     }
 
 
+    { // init soloud
+        spdlog::info("init soloud");
+        soloud.init();
+    }
+
     return true;
 }
 
@@ -330,11 +335,13 @@ void Application::endFrame() {
 }
 
 void Application::destroy() {
-  glDeleteVertexArrays(1, &vao_);
-  // glDeleteBuffers(1, &vbo_cube_);
+    soloud.deinit();
 
-  ImGui::DestroyContext();
-  glfwTerminate();
+    glDeleteVertexArrays(1, &vao_);
+    // glDeleteBuffers(1, &vbo_cube_);
+
+    ImGui::DestroyContext();
+    glfwTerminate();
 }
 
 void Application::runImGui() {
@@ -393,6 +400,10 @@ void Application::runImGui() {
         }
 
         ImGui::ColorEdit3("clear color", glm::value_ptr(data.background_color));
+
+        ImGui::Separator();
+
+        ImGui::Text("active voices %d", soloud.getActiveVoiceCount());
 
         ImGui::End();
     }
