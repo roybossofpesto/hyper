@@ -78,7 +78,7 @@ if(IMGUI_USE_DARK_THEME)
     target_compile_definitions(imgui PUBLIC SPECTRUM_USE_DARK_THEME)
 endif()
 
-include(soloud)
+#include(soloud)
 #include(nativefiledialog)
 #include(nlohmann_json)
 #include(clhpp)
@@ -116,22 +116,22 @@ target_link_libraries(drum
     spdlog
     imgui
     glfw
-    soloud::soloud
+    #soloud::soloud
     PUBLIC
     glm
 )
 
-add_executable(test_soloud)
-target_sources(test_soloud
-    PRIVATE
-    "src/test_soloud.cpp"
-    PUBLIC
-)
-target_include_directories(test_soloud
-    PUBLIC
-    "include"
-)
-target_link_libraries(test_soloud
-    PRIVATE
-    soloud::soloud
-)
+#add_executable(test_soloud)
+#target_sources(test_soloud
+#    PRIVATE
+#    "src/test_soloud.cpp"
+#    PUBLIC
+#)
+#target_include_directories(test_soloud
+#    PUBLIC
+#    "include"
+#)
+#target_link_libraries(test_soloud
+#    PRIVATE
+#    soloud::soloud
+#)
