@@ -23,7 +23,7 @@ option(GLFW_BUILD_TESTS OFF)
 #fetch_content(catch2 https://github.com/catchorg/Catch2.git v2.13.3)
 fetch_content(glfw https://github.com/glfw/glfw.git 3.3.3)
 fetch_content(glm https://github.com/g-truc/glm.git 0.9.9.8)
-fetch_content(glad https://github.com/Dav1dde/glad.git v0.1.34)
+#fetch_content(glad https://github.com/Dav1dde/glad.git v0.1.34)
 fetch_content(imgui
     https://github.com/adobe/imgui.git
     bc8297b793928b96d5db678a5b4f1229c3f493f5)
