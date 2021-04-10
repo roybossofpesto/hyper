@@ -52,18 +52,18 @@ def generate_nexts(xx):
         aa = copy.copy(xx)
         aa &= ~ww
         aa |= ww_next
-        yield aa
+        yield aa, 1.
 
         bb = copy.copy(xx)
         bb &= ~ww
         bb |= ww_prev
-        yield bb
+        yield bb, 1.5
 
         cc = copy.copy(xx)
         cc &= ~ww
         cc |= ww_next
         cc |= ww_prev
-        yield cc
+        yield cc, 2.
 
 def shortest_path(xx, yy):
     queue = []
@@ -86,9 +86,9 @@ def shortest_path(xx, yy):
                 path.append(current)
             path.reverse()
             return path
-        for next_value in generate_nexts(current_value):
+        for next_value, next_weight in generate_nexts(current_value):
             #print(binary(current_value), "->", binary(next_value))
-            heapq.heappush(queue, (dist + random.uniform(0.8, 1.2), next_value, current_value))
+            heapq.heappush(queue, (dist + next_weight + random.uniform(0.8, 1.2), next_value, current_value))
 
     return None
 
